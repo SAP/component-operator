@@ -1,0 +1,110 @@
+apiVersion: core.cs.sap.com/v1alpha1
+kind: Component
+metadata:
+  name: podinfo
+spec:
+  # ---
+  sourceRef:
+    fluxGitRepository:
+      name: podinfo
+  path: kustomize
+  # ---
+  # sourceRef:
+  #   fluxGitRepository:
+  #     name: podinfo
+  # path: charts/podinfo
+  # ---
+  # sourceRef:
+  #   fluxOciRepository:
+  #     name: podinfo-helm
+  # path: podinfo
+  # ---
+  # sourceRef:
+  #   fluxHelmChart:
+  #     name: podinfo-git
+  # path: podinfo
+  # ---
+  # sourceRef:
+  #   fluxHelmChart:
+  #     name: podinfo-oci
+  # path: podinfo
+  # ---
+  # sourceRef:
+  #   fluxHelmChart:
+  #     name: podinfo-helm
+  # path: podinfo
+---
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: GitRepository
+metadata:
+  name: podinfo
+spec:
+  interval: 1m0s
+  ref:
+    tag: 6.6.3
+  url: https://github.com/stefanprodan/podinfo
+# ---
+# apiVersion: source.toolkit.fluxcd.io/v1beta2
+# kind: OCIRepository
+# metadata:
+#   name: podinfo-helm
+# spec:
+#   interval: 1m0s
+#   url: oci://ghcr.io/stefanprodan/charts/podinfo
+#   ref:
+#     tag: 6.6.3
+# ---
+# apiVersion: source.toolkit.fluxcd.io/v1beta2
+# kind: HelmRepository
+# metadata:
+#   name: podinfo-oci
+# spec:
+#   interval: 1m0s
+#   type: oci
+#   url: oci://ghcr.io/stefanprodan/charts
+# ---
+# apiVersion: source.toolkit.fluxcd.io/v1beta2
+# kind: HelmRepository
+# metadata:
+#   name: podinfo-helm
+# spec:
+#   interval: 1m0s
+#   url: https://stefanprodan.github.io/podinfo
+# ---
+# apiVersion: source.toolkit.fluxcd.io/v1beta2
+# kind: HelmChart
+# metadata:
+#   name: podinfo-git
+# spec:
+#   interval: 1m0s
+#   chart: charts/podinfo
+#   reconcileStrategy: Revision
+#   sourceRef:
+#     kind: GitRepository
+#     name: podinfo
+# ---
+# apiVersion: source.toolkit.fluxcd.io/v1beta2
+# kind: HelmChart
+# metadata:
+#   name: podinfo-oci
+# spec:
+#   interval: 1m0s
+#   chart: podinfo
+#   reconcileStrategy: ChartVersion
+#   sourceRef:
+#     kind: HelmRepository
+#     name: podinfo-oci
+#   version: 6.6.3
+# ---
+# apiVersion: source.toolkit.fluxcd.io/v1beta2
+# kind: HelmChart
+# metadata:
+#   name: podinfo-helm
+# spec:
+#   interval: 1m0s
+#   chart: podinfo
+#   reconcileStrategy: ChartVersion
+#   sourceRef:
+#     kind: HelmRepository
+#     name: podinfo-helm
+#   version: 6.6.3

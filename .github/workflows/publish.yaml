@@ -1,0 +1,171 @@
+name: Publish artifacts
+
+on:
+  release:
+    types: [published]
+
+concurrency: release-${{ github.event.release.tag_name }}
+
+env:
+  HELM_VERSION: v3.11.3
+  REGCTL_VERSION: v0.4.8
+  REGISTRY: ghcr.io
+  CHART_DIRECTORY: chart
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  publish-go-module:
+    name: Publish go module
+    runs-on: ubuntu-22.04
+
+    steps:
+    - name: Trigger registration on sum.golang.org
+      run: |
+        repository=${{ github.repository }}
+        tag=${{ github.event.release.tag_name }}
+        curl -sSf \
+          --max-time 30 \
+          --retry 5 \
+          --retry-max-time 300 \
+          https://sum.golang.org/lookup/github.com/${repository,,}@${tag}
+
+  validate:
+    name: Run validations
+    runs-on: ubuntu-22.04
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Validate chart version/appVersion
+      run: |
+        chart_version=$(yq .version $CHART_DIRECTORY/Chart.yaml)
+        app_version=$(yq .appVersion $CHART_DIRECTORY/Chart.yaml)
+        if [ "v$chart_version" != "${{ github.event.release.tag_name }}" ]; then
+          >&2 echo "Version in $CHART_DIRECTORY/Chart.yaml ($chart_version) does not match release version (${{ github.event.release.tag_name }})."
+          exit 1
+        fi
+        if [ "$app_version" != "${{ github.event.release.tag_name }}" ]; then
+          >&2 echo "AppVersion in $CHART_DIRECTORY/Chart.yaml ($app_version) does not match release version (${{ github.event.release.tag_name }})."
+          exit 1
+        fi
+
+  publish-docker:
+    name: Publish Docker image
+    runs-on: ubuntu-22.04
+    needs: validate
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Log in to the Container registry
+      uses: docker/login-action@v2
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ github.token }}
+
+    - name: Prepare repository name
+      id: prepare-repository-name
+      run: |
+        repository=$REGISTRY/${{ github.repository }}
+        echo "repository=${repository,,}" >> $GITHUB_OUTPUT
+
+    - name: Extract metadata (tags, labels) for Docker
+      id: extract-metadata
+      uses: docker/metadata-action@v4
+      with:
+        images: ${{ steps.prepare-repository-name.outputs.repository }}
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v4
+      with:
+        platforms: linux/amd64,linux/arm64
+        context: .
+        cache-from: |
+          type=gha,scope=sha-${{ github.sha }}
+          type=gha,scope=${{ github.ref_name }}
+          type=gha,scope=${{ github.base_ref || 'main' }}
+          type=gha,scope=main
+        cache-to: |
+          type=gha,scope=sha-${{ github.sha }},mode=max
+          type=gha,scope=${{ github.ref_name }},mode=max
+        push: true
+        tags: ${{ steps.extract-metadata.outputs.tags }}
+        labels: ${{ steps.extract-metadata.outputs.labels }}
+
+  publish-crds:
+    name: Publish CRD image
+    runs-on: ubuntu-22.04
+    needs: validate
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup regctl
+      uses: regclient/actions/regctl-installer@main
+      with:
+        release: ${{ env.REGCTL_VERSION }}
+        install-dir: ${{ runner.temp }}/bin
+
+    - name: Log in to the registry
+      # regctl-login action is currently broken ...
+      # uses: regclient/actions/regctl-login@main
+      # with:
+      #   registry: ${{ env.REGISTRY }}
+      #   username: ${{ github.actor }}
+      #   password: ${{ github.token }}
+      run: |
+        regctl registry login $REGISTRY --user ${{ github.actor }} --pass-stdin <<< ${{ github.token }}
+
+    - name: Build and push artifact
+      run: |
+        cd crds
+        repository=$REGISTRY/${{ github.repository }}/crds
+        tar cvz * | regctl artifact put -m application/gzip ${repository,,}:${{ github.event.release.tag_name }}
+
+  publish-chart:
+    name: Publish chart to github packages
+    runs-on: ubuntu-22.04
+    needs: validate
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - uses: azure/setup-helm@v3
+      with:
+       version: ${{ env.HELM_VERSION }}
+
+    - name: Create package
+      run: |
+        helm package --version ${{ github.event.release.tag_name }} $CHART_DIRECTORY
+
+    - name: Login to the OCI registry
+      run: |
+        helm --registry-config $RUNNER_TEMP/helm-config.json registry login $REGISTRY -u ${{ github.actor }} --password-stdin <<< ${{ github.token }}
+
+    - name: Upload package
+      run: |
+        chart_name=$(yq .name $CHART_DIRECTORY/Chart.yaml)
+        file=$chart_name-${{ github.event.release.tag_name }}.tgz
+        repository=$REGISTRY/${{ github.repository }}/charts
+        helm --registry-config $RUNNER_TEMP/helm-config.json push $file oci://${repository,,}
+

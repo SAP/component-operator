@@ -1,7 +1,7 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: component-operator
-Upstream-Contact: ospo@sap.com
-Source: https://github.com/SAP/component-operator
+Upstream-Contact: SAP_ERP4SME_DevOps@sap.com
+Source: https://github.com/sap/component-operator
 Disclaimer: The code in this project may include calls to APIs ("API Calls") of
  SAP or third-party products or services developed outside of this project
  ("External Products").
@@ -26,4 +26,8 @@ Disclaimer: The code in this project may include calls to APIs ("API Calls") of
 
 Files: *
 Copyright:  2024 SAP SE or an SAP affiliate company and component-operator contributors
+License: Apache-2.0
+
+Files: internal/decrypt/sops.go
+Copyright:  2020 The Flux authors, 2024 SAP SE or an SAP affiliate company and component-operator contributors
 License: Apache-2.0

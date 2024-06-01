@@ -1,0 +1,181 @@
+name: Build artifacts
+
+on:
+  push:
+    branches:
+    - main
+
+  pull_request:
+    branches:
+    - main
+
+concurrency: build-${{ github.ref }}
+
+env:
+  HELM_VERSION: v3.11.3
+  KIND_VERSION: v0.19.0
+  REGISTRY: ghcr.io
+  CHART_DIRECTORY: chart
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  test:
+    name: Run tests
+    runs-on: ubuntu-22.04
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup go
+      uses: actions/setup-go@v4
+      with:
+        go-version-file: go.mod
+
+    - name: Check that license header boilerplate is correct
+      uses: sap/cs-actions/check-go-license-boilerplate@main
+      with:
+        boilerplate-path: hack/boilerplate.go.txt
+
+    - name: Check that license headers are correct
+      uses: sap/cs-actions/check-go-license-headers@main
+      with:
+        boilerplate-path: hack/boilerplate.go.txt
+
+    - name: Check that generated artifacts are up-to-date
+      run: |
+        make generate
+        echo "Running 'git status' ..."
+        if [ -z "$(git status --porcelain)" ]; then
+          echo "Generated artifacts are up-to-date."
+        else
+          >&2 echo "Generated artifacts are not up-to-date; probably 'make generate' was not run before committing."
+          exit 1
+        fi
+
+    - name: Check that manifests are up-to-date
+      run: |
+        make manifests
+        echo "Running 'git status' ..."
+        if [ -z "$(git status --porcelain)" ]; then
+          echo "Manifests are up-to-date."
+        else
+          >&2 echo "Manifests are not up-to-date; probably 'make manifests' was not run before committing."
+          exit 1
+        fi
+
+    - name: Run tests
+      run: |
+        make envtest
+        KUBEBUILDER_ASSETS=$(pwd)/bin/k8s/current E2E_ENABLED=${{ github.event_name == 'push' }} go test -count 1 ./...
+
+  build-docker:
+    name: Build Docker image
+    runs-on: ubuntu-22.04
+    needs: test
+    permissions:
+      contents: read
+    outputs:
+      image-archive: image.tar
+      image-repository: ${{ steps.prepare-repository-name.outputs.repository }}
+      image-tag: ${{ steps.extract-metadata.outputs.version }}
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Prepare repository name
+      id: prepare-repository-name
+      run: |
+        repository=$REGISTRY/${{ github.repository }}
+        echo "repository=${repository,,}" >> $GITHUB_OUTPUT
+
+    - name: Extract metadata (tags, labels) for Docker
+      id: extract-metadata
+      uses: docker/metadata-action@v4
+      with:
+        images: ${{ steps.prepare-repository-name.outputs.repository }}
+
+    - name: Build Docker image
+      uses: docker/build-push-action@v4
+      with:
+        platforms: linux/amd64,linux/arm64
+        context: .
+        cache-from: |
+          type=gha,scope=sha-${{ github.sha }}
+          type=gha,scope=${{ github.ref_name }}
+          type=gha,scope=${{ github.base_ref || 'main' }}
+          type=gha,scope=main
+        cache-to: |
+          type=gha,scope=sha-${{ github.sha }},mode=max
+          type=gha,scope=${{ github.ref_name }},mode=max
+        outputs: |
+          type=oci,dest=${{ runner.temp }}/image.tar
+        tags: ${{ steps.extract-metadata.outputs.tags }}
+        labels: ${{ steps.extract-metadata.outputs.labels }}
+
+    - name: Upload Docker image archive
+      uses: actions/upload-artifact@v3
+      with:
+        name: image.tar
+        path: ${{ runner.temp }}/image.tar
+
+  test-helm:
+    name: Run Helm chart tests
+    runs-on: ubuntu-22.04
+    needs: build-docker
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - uses: azure/setup-helm@v3
+      with:
+        version: ${{ env.HELM_VERSION }}
+
+    - name: Lint Helm chart
+      run: |
+        helm lint $CHART_DIRECTORY
+
+    - name: Create Kind cluster
+      uses: helm/kind-action@v1
+      with:
+        version: ${{ env.KIND_VERSION }}
+        cluster_name: kind
+
+    - name: Show Kubernetes version
+      run: |
+        kubectl version
+
+    - name: Download Docker image archive
+      uses: actions/download-artifact@v3
+      with:
+        name: ${{ needs.build-docker.outputs.image-archive }}
+        path: ${{ runner.temp }}
+
+    - name: Load Docker image archive into Kind cluster
+      run: |
+        kind load image-archive ${{ runner.temp }}/${{ needs.build-docker.outputs.image-archive }}
+
+    - name: Install Helm chart and deploy sample component
+      run: |
+        if [ -f examples/setup.yaml ]; then
+          kubectl apply -f examples/setup.yaml
+          sleep 5
+        fi
+        release_name=$(yq .name $CHART_DIRECTORY/Chart.yaml)
+        kubectl create ns component-operator-system
+        helm -n component-operator-system upgrade -i $release_name --wait --timeout 5m \
+          --set image.repository=${{ needs.build-docker.outputs.image-repository }} \
+          --set image.tag=${{ needs.build-docker.outputs.image-tag }} \
+          $CHART_DIRECTORY
+        kubectl create ns component-system
+        kubectl -n component-system apply -f examples/sample.yaml
+        kubectl -n component-system wait -f examples/sample.yaml --for condition=Ready --timeout 120s
+
