@@ -121,6 +121,8 @@ func GetGenerator(id string, url string, path string, clnt client.Client, decryp
 
 func downloadArchive(url string, prefix string, dir string, decryptor decrypt.Decryptor) error {
 	prefix = filepath.Clean(prefix)
+	// TODO: check that prefix is a relative path and does not contain ..
+
 	resp, err := http.Get(url)
 	if err != nil {
 		return err
@@ -129,10 +131,13 @@ func downloadArchive(url string, prefix string, dir string, decryptor decrypt.De
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("error downloading %s: %s", url, resp.Status)
 	}
+
 	gzipReader, err := gzip.NewReader(resp.Body)
 	if err != nil {
 		return err
 	}
+	defer gzipReader.Close()
+
 	tarReader := tar.NewReader(gzipReader)
 	for {
 		header, err := tarReader.Next()

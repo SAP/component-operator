@@ -3,27 +3,24 @@ SPDX-FileCopyrightText: 2024 SAP SE or an SAP affiliate company and component-op
 SPDX-License-Identifier: Apache-2.0
 */
 
-package flux
+package object
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	fluxsourcev1 "github.com/fluxcd/source-controller/api/v1"
 )
 
-type Source interface {
+type Object interface {
 	client.Object
-	fluxsourcev1.Source
 	GetConditions() []metav1.Condition
 }
 
-func IsSourceReady(source Source) bool {
-	for _, condition := range source.GetConditions() {
+func IsReady(object Object) bool {
+	for _, condition := range object.GetConditions() {
 		if condition.Type != "Ready" {
 			continue
 		}
-		if condition.ObservedGeneration != source.GetGeneration() {
+		if condition.ObservedGeneration != object.GetGeneration() {
 			return false
 		}
 		return condition.Status == metav1.ConditionTrue

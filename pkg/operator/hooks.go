@@ -8,19 +8,91 @@ package operator
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/pkg/errors"
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	apitypes "k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	fluxsourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 
 	"github.com/sap/component-operator-runtime/pkg/component"
 	componentoperatorruntimetypes "github.com/sap/component-operator-runtime/pkg/types"
 
 	operatorv1alpha1 "github.com/sap/component-operator/api/v1alpha1"
+	"github.com/sap/component-operator/internal/flux"
+	"github.com/sap/component-operator/internal/object"
 )
+
+func makeFuncPostRead() component.HookFunc[*operatorv1alpha1.Component] {
+	return func(ctx context.Context, clnt client.Client, component *operatorv1alpha1.Component) error {
+		cleanup := func() error {
+			return nil
+		}
+
+		if !component.GetDeletionTimestamp().IsZero() {
+			return cleanup()
+		}
+
+		sourceRef := &component.Spec.SourceRef
+		sourceRefUrl := ""
+		sourceRefRevision := ""
+
+		switch {
+		case sourceRef.FluxGitRepository != nil, sourceRef.FluxOciRepository != nil, sourceRef.FluxBucket != nil, sourceRef.FluxHelmChart != nil:
+			if err := cleanup(); err != nil {
+				return err
+			}
+
+			var sourceName operatorv1alpha1.NamespacedName
+			var source flux.Source
+
+			switch {
+			case sourceRef.FluxGitRepository != nil:
+				sourceName = sourceRef.FluxGitRepository.WithDefaultNamespace(component.Namespace)
+				source = &fluxsourcev1beta2.GitRepository{}
+			case sourceRef.FluxOciRepository != nil:
+				sourceName = sourceRef.FluxOciRepository.WithDefaultNamespace(component.Namespace)
+				source = &fluxsourcev1beta2.OCIRepository{}
+			case sourceRef.FluxBucket != nil:
+				sourceName = sourceRef.FluxBucket.WithDefaultNamespace(component.Namespace)
+				source = &fluxsourcev1beta2.Bucket{}
+			case sourceRef.FluxHelmChart != nil:
+				sourceName = sourceRef.FluxHelmChart.WithDefaultNamespace(component.Namespace)
+				source = &fluxsourcev1beta2.HelmChart{}
+			default:
+				panic("this cannot happen")
+			}
+
+			if err := clnt.Get(ctx, apitypes.NamespacedName(sourceName), source); err != nil {
+				if apimeta.IsNoMatchError(err) || apierrors.IsNotFound(err) {
+					return componentoperatorruntimetypes.NewRetriableError(err, ref(10*time.Second))
+				}
+				return err
+			}
+			if !object.IsReady(source) {
+				return componentoperatorruntimetypes.NewRetriableError(fmt.Errorf("source not ready"), ref(10*time.Second))
+			}
+
+			artifact := source.GetArtifact()
+			sourceRefUrl = artifact.URL
+			sourceRefRevision = artifact.Revision
+		default:
+			return fmt.Errorf("unable to get source; one of fluxGitRepository, fluxOciRepository, fluxBucket, fluxHelmChart must be defined")
+		}
+
+		sourceRef.Init(sourceRefUrl, sourceRefRevision)
+
+		if component.Spec.Revision != "" && sourceRefRevision != component.Spec.Revision {
+			return componentoperatorruntimetypes.NewRetriableError(fmt.Errorf("source revision (%s) does not match specified revision (%s)", sourceRefRevision, component.Spec.Revision), ref(10*time.Second))
+		}
+		return nil
+	}
+}
 
 func makeFuncPreReconcile(cache cache.Cache) component.HookFunc[*operatorv1alpha1.Component] {
 	return func(ctx context.Context, clnt client.Client, component *operatorv1alpha1.Component) error {
@@ -53,11 +125,11 @@ func makeFuncPostReconcile() component.HookFunc[*operatorv1alpha1.Component] {
 	}
 }
 
-func makeFuncPreDelete(cache cache.Cache, indexKey string) component.HookFunc[*operatorv1alpha1.Component] {
+func makeFuncPreDelete(cache cache.Cache) component.HookFunc[*operatorv1alpha1.Component] {
 	return func(ctx context.Context, clnt client.Client, component *operatorv1alpha1.Component) error {
 		componentList := &operatorv1alpha1.ComponentList{}
 		if err := cache.List(ctx, componentList, client.MatchingFields{
-			indexKey: client.ObjectKeyFromObject(component).String(),
+			dependenciesIndexKey: client.ObjectKeyFromObject(component).String(),
 		}); err != nil {
 			return err
 		}
