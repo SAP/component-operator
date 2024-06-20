@@ -6,7 +6,6 @@ SPDX-License-Identifier: Apache-2.0
 package operator
 
 import (
-	"context"
 	"flag"
 
 	"github.com/pkg/errors"
@@ -25,20 +24,13 @@ import (
 	"github.com/sap/component-operator-runtime/pkg/reconciler"
 
 	operatorv1alpha1 "github.com/sap/component-operator/api/v1alpha1"
+	"github.com/sap/component-operator/internal/flux"
 	"github.com/sap/component-operator/internal/generator"
 )
 
 // TODO: write some logs (e.g. in the hooks)
 
 const Name = "component-operator.cs.sap.com"
-
-const (
-	dependenciesIndexKey  string = ".metadata.dependencies"
-	gitRepositoryIndexKey string = ".metadata.gitRepository"
-	ociRepositoryIndexKey string = ".metadata.ociRepository"
-	bucketIndexKey        string = ".metadata.bucket"
-	helmChartIndexKey     string = ".metadata.helmChart"
-)
 
 type Options struct {
 	Name       string
@@ -110,45 +102,20 @@ func (o *Operator) GetUncacheableTypes() []client.Object {
 }
 
 func (o *Operator) Setup(mgr ctrl.Manager) error {
-	// TODO: should we pass a meaningful context?
-	if err := mgr.GetCache().IndexField(context.TODO(), &operatorv1alpha1.Component{}, dependenciesIndexKey, indexByDependencies); err != nil {
-		return errors.Wrapf(err, "failed setting index field %s", dependenciesIndexKey)
+	blder := ctrl.NewControllerManagedBy(mgr).
+		WithOptions(controller.Options{MaxConcurrentReconciles: 5})
+
+	if err := setupCache(mgr, blder); err != nil {
+		return errors.Wrap(err, "error registering component resource")
 	}
-	if err := mgr.GetCache().IndexField(context.TODO(), &operatorv1alpha1.Component{}, gitRepositoryIndexKey, indexByGitRepository); err != nil {
-		return errors.Wrapf(err, "failed setting index field %s", gitRepositoryIndexKey)
-	}
-	if err := mgr.GetCache().IndexField(context.TODO(), &operatorv1alpha1.Component{}, ociRepositoryIndexKey, indexByOciRepository); err != nil {
-		return errors.Wrapf(err, "failed setting index field %s", ociRepositoryIndexKey)
-	}
-	if err := mgr.GetCache().IndexField(context.TODO(), &operatorv1alpha1.Component{}, bucketIndexKey, indexByBucket); err != nil {
-		return errors.Wrapf(err, "failed setting index field %s", bucketIndexKey)
-	}
-	if err := mgr.GetCache().IndexField(context.TODO(), &operatorv1alpha1.Component{}, helmChartIndexKey, indexByHelmChart); err != nil {
-		return errors.Wrapf(err, "failed setting index field %s", helmChartIndexKey)
+	if err := flux.SetupCache(mgr, blder); err != nil {
+		return errors.Wrap(err, "error registering flux resources")
 	}
 
 	resourceGenerator, err := generator.NewGenerator(mgr.GetClient())
 	if err != nil {
 		return errors.Wrap(err, "error initializing resource generator")
 	}
-
-	blder := ctrl.NewControllerManagedBy(mgr).
-		WithOptions(controller.Options{MaxConcurrentReconciles: 5}).
-		Watches(
-			&operatorv1alpha1.Component{},
-			&componentHandler{cache: mgr.GetCache(), indexKey: dependenciesIndexKey}).
-		Watches(
-			&fluxsourcev1beta2.GitRepository{},
-			&fluxSourceHandler{cache: mgr.GetCache(), indexKey: gitRepositoryIndexKey}).
-		Watches(
-			&fluxsourcev1beta2.OCIRepository{},
-			&fluxSourceHandler{cache: mgr.GetCache(), indexKey: ociRepositoryIndexKey}).
-		Watches(
-			&fluxsourcev1beta2.Bucket{},
-			&fluxSourceHandler{cache: mgr.GetCache(), indexKey: bucketIndexKey}).
-		Watches(
-			&fluxsourcev1beta2.HelmChart{},
-			&fluxSourceHandler{cache: mgr.GetCache(), indexKey: helmChartIndexKey})
 
 	if err := component.NewReconciler[*operatorv1alpha1.Component](
 		o.options.Name,
@@ -157,13 +124,13 @@ func (o *Operator) Setup(mgr ctrl.Manager) error {
 			UpdatePolicy: &[]reconciler.UpdatePolicy{reconciler.UpdatePolicySsaOverride}[0],
 		},
 	).WithPostReadHook(
-		operatorv1alpha1.LoadSourceReference,
+		makeFuncPostRead(),
 	).WithPreReconcileHook(
 		makeFuncPreReconcile(mgr.GetCache()),
 	).WithPostReconcileHook(
 		makeFuncPostReconcile(),
 	).WithPreDeleteHook(
-		makeFuncPreDelete(mgr.GetCache(), dependenciesIndexKey),
+		makeFuncPreDelete(mgr.GetCache()),
 	).SetupWithManagerAndBuilder(mgr, blder); err != nil {
 		return errors.Wrapf(err, "unable to create controller")
 	}

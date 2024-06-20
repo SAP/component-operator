@@ -6,22 +6,15 @@ SPDX-License-Identifier: Apache-2.0
 package v1alpha1
 
 import (
-	"context"
 	"fmt"
 
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	apitypes "k8s.io/apimachinery/pkg/types"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	fluxsourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 
 	"github.com/sap/component-operator-runtime/pkg/component"
 	componentoperatorruntimetypes "github.com/sap/component-operator-runtime/pkg/types"
-
-	"github.com/sap/component-operator/internal/flux"
 )
 
 // ComponentSpec defines the desired state of Component.
@@ -52,6 +45,18 @@ type SourceReference struct {
 	url               string             `json:"-"`
 	revision          string             `json:"-"`
 	loaded            bool               `json:"-"`
+}
+
+// Initialize source reference. This is meant to be called by the reconciler.
+// Other consumers should probably not (need to) call this.
+func (r *SourceReference) Init(url string, revision string) {
+	if r.loaded {
+		// note: this panic indicates a programmatic error on the consumer side
+		panic("reference already initialized")
+	}
+	r.url = url
+	r.revision = revision
+	r.loaded = true
 }
 
 // Get the URL of a loaded source reference. Calling Url() on a not-loaded source reference will panic.
@@ -218,77 +223,6 @@ func (c *Component) GetSpec() componentoperatorruntimetypes.Unstructurable {
 // Implement the component-operator-runtime Component interface.
 func (c *Component) GetStatus() *component.Status {
 	return &c.Status.Status
-}
-
-// Load component's source reference.
-func LoadSourceReference(ctx context.Context, clnt client.Client, component *Component) error {
-	if !component.GetDeletionTimestamp().IsZero() {
-		return nil
-	}
-
-	sourceRef := &component.Spec.SourceRef
-	switch {
-	case sourceRef.FluxGitRepository != nil:
-		gitRepository := &fluxsourcev1beta2.GitRepository{}
-		if err := clnt.Get(ctx, apitypes.NamespacedName(sourceRef.FluxGitRepository.WithDefaultNamespace(component.Namespace)), gitRepository); err != nil {
-			if apierrors.IsNotFound(err) {
-				return componentoperatorruntimetypes.NewRetriableError(err, nil)
-			}
-			return err
-		}
-		if !flux.IsSourceReady(gitRepository) {
-			return componentoperatorruntimetypes.NewRetriableError(fmt.Errorf("source not ready"), nil)
-		}
-		sourceRef.url = gitRepository.Status.Artifact.URL
-		sourceRef.revision = gitRepository.Status.Artifact.Revision
-	case sourceRef.FluxOciRepository != nil:
-		ociRepository := &fluxsourcev1beta2.OCIRepository{}
-		if err := clnt.Get(ctx, apitypes.NamespacedName(sourceRef.FluxOciRepository.WithDefaultNamespace(component.Namespace)), ociRepository); err != nil {
-			if apierrors.IsNotFound(err) {
-				return componentoperatorruntimetypes.NewRetriableError(err, nil)
-			}
-			return err
-
-		}
-		if !flux.IsSourceReady(ociRepository) {
-			return componentoperatorruntimetypes.NewRetriableError(fmt.Errorf("source not ready"), nil)
-		}
-		sourceRef.url = ociRepository.Status.Artifact.URL
-		sourceRef.revision = ociRepository.Status.Artifact.Revision
-	case sourceRef.FluxBucket != nil:
-		bucket := &fluxsourcev1beta2.Bucket{}
-		if err := clnt.Get(ctx, apitypes.NamespacedName(sourceRef.FluxBucket.WithDefaultNamespace(component.Namespace)), bucket); err != nil {
-			if apierrors.IsNotFound(err) {
-				return componentoperatorruntimetypes.NewRetriableError(err, nil)
-			}
-			return err
-		}
-		if !flux.IsSourceReady(bucket) {
-			return componentoperatorruntimetypes.NewRetriableError(fmt.Errorf("source not ready"), nil)
-		}
-		sourceRef.url = bucket.Status.Artifact.URL
-		sourceRef.revision = bucket.Status.Artifact.Revision
-	case sourceRef.FluxHelmChart != nil:
-		helmChart := &fluxsourcev1beta2.HelmChart{}
-		if err := clnt.Get(ctx, apitypes.NamespacedName(sourceRef.FluxHelmChart.WithDefaultNamespace(component.Namespace)), helmChart); err != nil {
-			if apierrors.IsNotFound(err) {
-				return componentoperatorruntimetypes.NewRetriableError(err, nil)
-			}
-			return err
-		}
-		if !flux.IsSourceReady(helmChart) {
-			return componentoperatorruntimetypes.NewRetriableError(fmt.Errorf("source not ready"), nil)
-		}
-		sourceRef.url = helmChart.Status.Artifact.URL
-		sourceRef.revision = helmChart.Status.Artifact.Revision
-	default:
-		return fmt.Errorf("unable to get source; one of fluxGitRepository, fluxOciRepository, fluxBucket, fluxHelmChart must be defined")
-	}
-	sourceRef.loaded = true
-	if component.Spec.Revision != "" && sourceRef.revision != component.Spec.Revision {
-		return componentoperatorruntimetypes.NewRetriableError(fmt.Errorf("source revision (%s) does not match specified revision (%s)", sourceRef.revision, component.Spec.Revision), nil)
-	}
-	return nil
 }
 
 func equal[T comparable](x *T, y *T) bool {

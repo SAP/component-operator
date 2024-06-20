@@ -156,7 +156,8 @@ jobs:
 
     - name: Create package
       run: |
-        helm package --version ${{ github.event.release.tag_name }} $CHART_DIRECTORY
+        chart_version=$(yq .version $CHART_DIRECTORY/Chart.yaml)
+        helm package --version $chart_version $CHART_DIRECTORY
 
     - name: Login to the OCI registry
       run: |
@@ -165,7 +166,8 @@ jobs:
     - name: Upload package
       run: |
         chart_name=$(yq .name $CHART_DIRECTORY/Chart.yaml)
-        file=$chart_name-${{ github.event.release.tag_name }}.tgz
+        chart_version=$(yq .version $CHART_DIRECTORY/Chart.yaml)
+        file=$chart_name-$chart_version.tgz
         repository=$REGISTRY/${{ github.repository }}/charts
         helm --registry-config $RUNNER_TEMP/helm-config.json push $file oci://${repository,,}
 
