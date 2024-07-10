@@ -107,7 +107,7 @@ func GetGenerator(id string, url string, path string, clnt client.Client, decryp
 				return nil, err
 			}
 		} else if errors.Is(err, fs.ErrNotExist) {
-			generator, err = kustomize.NewKustomizeGenerator(fsys, "", "", clnt)
+			generator, err = kustomize.NewKustomizeGenerator(fsys, "", clnt, kustomize.KustomizeGeneratorOptions{})
 			if err != nil {
 				return nil, err
 			}
