@@ -1,6 +1,6 @@
 module github.com/sap/component-operator
 
-go 1.22.3
+go 1.22.5
 
 require (
 	filippo.io/age v1.1.1
@@ -8,13 +8,13 @@ require (
 	github.com/fluxcd/source-controller/api v1.3.0
 	github.com/getsops/sops/v3 v3.8.1
 	github.com/pkg/errors v0.9.1
-	github.com/sap/component-operator-runtime v0.3.26
-	github.com/sap/go-generics v0.2.11
-	k8s.io/apiextensions-apiserver v0.30.1
-	k8s.io/apimachinery v0.30.1
-	k8s.io/client-go v0.30.1
-	k8s.io/kube-aggregator v0.30.1
-	sigs.k8s.io/controller-runtime v0.18.3
+	github.com/sap/component-operator-runtime v0.3.32
+	github.com/sap/go-generics v0.2.13
+	k8s.io/apiextensions-apiserver v0.30.2
+	k8s.io/apimachinery v0.30.2
+	k8s.io/client-go v0.30.2
+	k8s.io/kube-aggregator v0.30.2
+	sigs.k8s.io/controller-runtime v0.18.4
 	sigs.k8s.io/yaml v1.4.0
 )
 
@@ -140,7 +140,7 @@ require (
 	golang.org/x/exp v0.0.0-20240213143201-ec583247a57a // indirect
 	golang.org/x/net v0.25.0 // indirect
 	golang.org/x/oauth2 v0.17.0 // indirect
-	golang.org/x/sync v0.6.0 // indirect
+	golang.org/x/sync v0.7.0 // indirect
 	golang.org/x/sys v0.20.0 // indirect
 	golang.org/x/term v0.20.0 // indirect
 	golang.org/x/text v0.15.0 // indirect
@@ -158,11 +158,11 @@ require (
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	k8s.io/api v0.30.1 // indirect
+	k8s.io/api v0.30.2 // indirect
 	k8s.io/klog/v2 v2.120.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20240228011516-70dd3763d340 // indirect
-	k8s.io/utils v0.0.0-20240310230437-4693a0247e57 // indirect
-	sigs.k8s.io/cli-utils v0.36.0 // indirect
+	k8s.io/utils v0.0.0-20240502163921-fe8a2dddb1d0 // indirect
+	sigs.k8s.io/cli-utils v0.37.2 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
 	sigs.k8s.io/kustomize/api v0.17.2 // indirect
 	sigs.k8s.io/kustomize/kyaml v0.17.1 // indirect
