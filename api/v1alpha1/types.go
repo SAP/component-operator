@@ -23,6 +23,7 @@ type ComponentSpec struct {
 	component.ClientSpec    `json:",inline"`
 	component.RequeueSpec   `json:",inline"`
 	component.RetrySpec     `json:",inline"`
+	component.TimeoutSpec   `json:",inline"`
 	// +required
 	SourceRef    SourceReference                `json:"sourceRef"`
 	Revision     string                         `json:"revision,omitempty"`

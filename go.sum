@@ -325,8 +325,8 @@ github.com/russross/blackfriday/v2 v2.1.0 h1:JIOH55/0cWyOuilr9/qlrm0BSXldqnqwMsf
 github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
 github.com/ryanuber/go-glob v1.0.0 h1:iQh3xXAumdQ+4Ufa5b25cRpC5TYKlno6hsv6Cb3pkBk=
 github.com/ryanuber/go-glob v1.0.0/go.mod h1:807d1WSdnB0XRJzKNil9Om6lcp/3a0v4qIHxIXzX/Yc=
-github.com/sap/component-operator-runtime v0.3.32 h1:V7zuyLoNeZYytpY45GtdmzdW8YmGonDH+gcKU3k/tZk=
-github.com/sap/component-operator-runtime v0.3.32/go.mod h1:nvtWaSpVyb+2d+AWhHPjyr187/yrt9ssVH7DxMyGkrU=
+github.com/sap/component-operator-runtime v0.3.34 h1:ewqs6mAQxYlBGsXffBkBWcwpZTPr6YL12NNBakQ/sn0=
+github.com/sap/component-operator-runtime v0.3.34/go.mod h1:nvtWaSpVyb+2d+AWhHPjyr187/yrt9ssVH7DxMyGkrU=
 github.com/sap/go-generics v0.2.13 h1:rSED7M+S7aw/9AomJq7omjgZtwvoixHsfVbOiCWs4cM=
 github.com/sap/go-generics v0.2.13/go.mod h1:G6v+AnJtKlUGB/ATd+zdUcosvBdUSyrHg7/kn5UKgx8=
 github.com/sergi/go-diff v1.2.0 h1:XU+rvMAioB0UC3q1MFrIQy4Vo5/4VsRDQQXHsEya6xQ=
