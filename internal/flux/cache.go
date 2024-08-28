@@ -115,11 +115,11 @@ func newHandler(cache cache.Cache, indexKey string) handler.EventHandler {
 	}
 }
 
-func (h *sourceHandler) Create(ctx context.Context, e event.CreateEvent, q workqueue.RateLimitingInterface) {
+func (h *sourceHandler) Create(ctx context.Context, e event.CreateEvent, q workqueue.TypedRateLimitingInterface[reconcile.Request]) {
 	// new sources will never be immediately ready, so nothing has to be done here
 }
 
-func (h *sourceHandler) Update(ctx context.Context, e event.UpdateEvent, q workqueue.RateLimitingInterface) {
+func (h *sourceHandler) Update(ctx context.Context, e event.UpdateEvent, q workqueue.TypedRateLimitingInterface[reconcile.Request]) {
 	newSource := e.ObjectNew.(Source)
 
 	if !object.IsReady(newSource) {
@@ -154,10 +154,10 @@ func (h *sourceHandler) Update(ctx context.Context, e event.UpdateEvent, q workq
 	}
 }
 
-func (h *sourceHandler) Delete(ctx context.Context, e event.DeleteEvent, q workqueue.RateLimitingInterface) {
+func (h *sourceHandler) Delete(ctx context.Context, e event.DeleteEvent, q workqueue.TypedRateLimitingInterface[reconcile.Request]) {
 	// no need to queue components if source is deleted (reconciliation of the component would anyway fail)
 }
 
-func (h *sourceHandler) Generic(context.Context, event.GenericEvent, workqueue.RateLimitingInterface) {
+func (h *sourceHandler) Generic(context.Context, event.GenericEvent, workqueue.TypedRateLimitingInterface[reconcile.Request]) {
 	// generic events are not expected to arrive on the watch that uses this handler, so nothing to do here
 }

@@ -27,6 +27,7 @@ import (
 	sopsage "github.com/getsops/sops/v3/age"
 	sopscommon "github.com/getsops/sops/v3/cmd/sops/common"
 	sopsformats "github.com/getsops/sops/v3/cmd/sops/formats"
+	sopsconfig "github.com/getsops/sops/v3/config"
 	sopskeys "github.com/getsops/sops/v3/keys"
 	sopskeyservice "github.com/getsops/sops/v3/keyservice"
 	sopslogging "github.com/getsops/sops/v3/logging"
@@ -117,7 +118,7 @@ func (d *SopsDecryptor) SopsDecryptWithFormat(input []byte, inputFormat sopsform
 		}
 	}()
 
-	store := sopscommon.StoreForFormat(inputFormat)
+	store := sopscommon.StoreForFormat(inputFormat, sopsconfig.NewStoresConfig())
 
 	tree, err := store.LoadEncryptedFile(input)
 	if err != nil {
@@ -130,7 +131,7 @@ func (d *SopsDecryptor) SopsDecryptWithFormat(input []byte, inputFormat sopsform
 		})
 	}
 
-	metadataKey, err := tree.Metadata.GetDataKeyWithKeyServices(d.keyServices)
+	metadataKey, err := tree.Metadata.GetDataKeyWithKeyServices(d.keyServices, sops.DefaultDecryptionOrder)
 	if err != nil {
 		return nil, sopsUserErr("cannot get sops data key", err)
 	}
@@ -140,7 +141,7 @@ func (d *SopsDecryptor) SopsDecryptWithFormat(input []byte, inputFormat sopsform
 		return nil, sopsUserErr("error decrypting sops tree", err)
 	}
 
-	outputStore := sopscommon.StoreForFormat(outputFormat)
+	outputStore := sopscommon.StoreForFormat(outputFormat, sopsconfig.NewStoresConfig())
 	out, err := outputStore.EmitPlainFile(tree.Branches)
 	if err != nil {
 		return nil, sopsUserErr(fmt.Sprintf("failed to emit encrypted %s file as decrypted %s",
