@@ -1,8 +1,6 @@
 module github.com/sap/component-operator
 
-go 1.22.6
-
-toolchain go1.23.0
+go 1.23.0
 
 require (
 	filippo.io/age v1.1.1
