@@ -8,7 +8,7 @@ require (
 	github.com/fluxcd/source-controller/api v1.3.0
 	github.com/getsops/sops/v3 v3.9.0
 	github.com/pkg/errors v0.9.1
-	github.com/sap/component-operator-runtime v0.3.35
+	github.com/sap/component-operator-runtime v0.3.36
 	github.com/sap/go-generics v0.2.19
 	k8s.io/apiextensions-apiserver v0.31.0
 	k8s.io/apimachinery v0.31.0
