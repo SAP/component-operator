@@ -32,6 +32,7 @@ spec:
       name: kubeconfig
   requeueInterval: 10m
   retryInterval: 3m
+  timeout: 5m
   sourceRef:
     fluxGitRepository:
       namespace: source-ns
@@ -66,13 +67,16 @@ The optional fields `spec.namespace` and `spec.name` may be provided to customiz
 By default, the dependent objects will be deployed in the same cluster where the component resides. A kubeconfig may be provided to deploy into a remote cluster,
 by specifying a secret (in the component's namespace) as `spec.kubeConfig.secretRef.name`. By default, the secret will be looked up at one of the following keys: `value`, `value.yaml`, `value.yml` (in this order). A custom key can be specified as `spec.kubeConfig.secretRef.key`. Note that the used kubeconfig must not use any kubectl plugins, such as kubelogin.
 
-### Reqeue interval and retry interval
+### Reqeue interval, retry interval and timeout
 
 The field `spec.requeueInterval` defines the period, after which a component is re-reconciled after a previously successful reconcilation.
 It is optional, the default is 10 minutes.
 
 The field `spec.retryInterval` defines the period, after which a component is re-reconciled if a retriable error occurs.
-Check the [component-operator-runtime documentation](https://sap.github.io/component-operator-runtime/docs/concepts/reconciler/#tuning-the-retry-behavior) for more details about retriable errors. This field is optional; if unset the retry interval equals the requeue interval.
+Check the [component-operator-runtime documentation](https://sap.github.io/component-operator-runtime/docs/concepts/reconciler/#tuning-the-retry-behavior) for more details about retriable errors. This field is optional; if unset the retry interval equals the effective requeue interval.
+
+Finally, the field `spec.timeout` defines how long dependent objects are expected to take to become ready. If not all depenents are ready, then the component state is `Processing` until the timeout has elapsed; afterwards, the component state flips to `Error`. Note that the operator still tries to reconcile the dependent objects in that case, just as before. The timeout restarts counting down whenever the component itself, or the rendered dependent manifests change.
+The timeout field is optional; if unset, it is defaulted with the effective requeue interval.
 
 ### Source reference
 
