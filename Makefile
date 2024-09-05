@@ -24,7 +24,7 @@ manifests: controller-gen ## Generate CustomResourceDefinition objects
 	test ! -d chart || test -e chart/crds || ln -s ../crds chart/crds
 
 .PHONY: generate
-generate: generate-deepcopy generate-client ## Generate everything
+generate: generate-deepcopy generate-client ## Generate required code pieces
 
 .PHONY: generate-deepcopy
 generate-deepcopy: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations
@@ -97,7 +97,7 @@ $(CONTROLLER_GEN): $(LOCALBIN)
 .PHONY: setup-envtest
 setup-envtest: $(SETUP_ENVTEST) ## Install setup-envtest
 $(SETUP_ENVTEST): $(LOCALBIN)
-	go mod download sigs.k8s.io/controller-runtime/tools/setup-envtest
+	go mod download sigs.k8s.io/controller-runtime
 	GOBIN=$(LOCALBIN) go install $$(go list -m -f '{{.Dir}}' sigs.k8s.io/controller-runtime/tools/setup-envtest)
 
 .PHONY: envtest
