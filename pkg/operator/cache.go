@@ -37,7 +37,7 @@ func setupCache(mgr manager.Manager, blder *builder.Builder) error {
 	blder.
 		Watches(
 			&operatorv1alpha1.Component{},
-			newHandler(mgr.GetCache(), dependenciesIndexKey))
+			newComponentHandler(mgr.GetCache(), dependenciesIndexKey))
 
 	return nil
 }
@@ -54,18 +54,18 @@ type componentHandler struct {
 	indexKey string
 }
 
-func newHandler(cache cache.Cache, indexKey string) handler.EventHandler {
+func newComponentHandler(cache cache.Cache, indexKey string) handler.TypedEventHandler[client.Object, reconcile.Request] {
 	return &componentHandler{
 		cache:    cache,
 		indexKey: indexKey,
 	}
 }
 
-func (h *componentHandler) Create(ctx context.Context, e event.CreateEvent, q workqueue.TypedRateLimitingInterface[reconcile.Request]) {
+func (h *componentHandler) Create(ctx context.Context, e event.TypedCreateEvent[client.Object], q workqueue.TypedRateLimitingInterface[reconcile.Request]) {
 	// new components will never be immediately ready, so nothing has to be done here
 }
 
-func (h *componentHandler) Update(ctx context.Context, e event.UpdateEvent, q workqueue.TypedRateLimitingInterface[reconcile.Request]) {
+func (h *componentHandler) Update(ctx context.Context, e event.TypedUpdateEvent[client.Object], q workqueue.TypedRateLimitingInterface[reconcile.Request]) {
 	newComponent := e.ObjectNew.(*operatorv1alpha1.Component)
 
 	if !newComponent.IsReady() {
@@ -89,7 +89,7 @@ func (h *componentHandler) Update(ctx context.Context, e event.UpdateEvent, q wo
 	}
 }
 
-func (h *componentHandler) Delete(ctx context.Context, e event.DeleteEvent, q workqueue.TypedRateLimitingInterface[reconcile.Request]) {
+func (h *componentHandler) Delete(ctx context.Context, e event.TypedDeleteEvent[client.Object], q workqueue.TypedRateLimitingInterface[reconcile.Request]) {
 	component := e.Object.(*operatorv1alpha1.Component)
 	for _, dependency := range component.Spec.Dependencies {
 		q.Add(reconcile.Request{NamespacedName: apitypes.NamespacedName{
@@ -99,6 +99,6 @@ func (h *componentHandler) Delete(ctx context.Context, e event.DeleteEvent, q wo
 	}
 }
 
-func (h *componentHandler) Generic(context.Context, event.GenericEvent, workqueue.TypedRateLimitingInterface[reconcile.Request]) {
+func (h *componentHandler) Generic(ctx context.Context, e event.TypedGenericEvent[client.Object], q workqueue.TypedRateLimitingInterface[reconcile.Request]) {
 	// generic events are not expected to arrive on the watch that uses this handler, so nothing to do here
 }

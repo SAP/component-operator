@@ -37,8 +37,9 @@ type ComponentSpec struct {
 
 // SourceReference models the source of the templates used to render the dependent resources.
 // Exactly one of the options must be provided. Before accessing the Url() or Revision() methods,
-// a SourceReference must be loaded by calling LoadSourceReference().
+// a SourceReference must be loaded by calling Init().
 type SourceReference struct {
+	HttpRepository    *HttpRepository    `json:"httpRepository,omitempty"`
 	FluxGitRepository *FluxGitRepository `json:"fluxGitRepository,omitempty"`
 	FluxOciRepository *FluxOciRepository `json:"fluxOciRepository,omitempty"`
 	FluxBucket        *FluxBucket        `json:"fluxBucket,omitempty"`
@@ -83,10 +84,22 @@ func (r *SourceReference) Revision() string {
 
 // Check if source reference equals other given source reference.
 func (r *SourceReference) Equals(s *SourceReference) bool {
-	return equal(r.FluxGitRepository, s.FluxGitRepository) &&
+	return equal(r.HttpRepository, s.HttpRepository) &&
+		equal(r.FluxGitRepository, s.FluxGitRepository) &&
 		equal(r.FluxOciRepository, s.FluxOciRepository) &&
 		equal(r.FluxBucket, s.FluxBucket) &&
 		equal(r.FluxHelmChart, s.FluxHelmChart)
+}
+
+// Reference to a generic http repository.
+type HttpRepository struct {
+	// URL of the source. Authentication is currently not supported. The operator will make HEAD requests to retrieve the revision and a potentially
+	// redirected actual location of the source artifact. Redirects will be followed as long as the response does not
+	// contain the specified revision header.
+	Url string `json:"url,omitempty"`
+	// Name of the header containing the revision of the source artifact. The returned header value can be any format, but must uniquely identify the
+	// content of the source artifact. If unspecified, the ETag header will be used.
+	RevisionHeader string `json:"revisionHeader,omitempty"`
 }
 
 // Reference to a flux GitRepository.
