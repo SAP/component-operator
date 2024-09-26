@@ -20,6 +20,8 @@ import (
 	"path/filepath"
 	"sort"
 
+	"github.com/pkg/errors"
+
 	"filippo.io/age"
 
 	sops "github.com/getsops/sops/v3"
@@ -167,9 +169,9 @@ func detectFormatFromMarkerBytes(b []byte) sopsformats.Format {
 
 func sopsUserErr(msg string, err error) error {
 	if userErr, ok := err.(sops.UserError); ok {
-		err = fmt.Errorf(userErr.UserError())
+		err = errors.New(userErr.UserError())
 	}
-	return fmt.Errorf("%s: %w", msg, err)
+	return errors.Wrap(err, msg)
 }
 
 func isOfflineMethod(mk sopskeys.MasterKey) bool {
