@@ -24,30 +24,27 @@ import (
 	componentoperatorruntimetypes "github.com/sap/component-operator-runtime/pkg/types"
 
 	operatorv1alpha1 "github.com/sap/component-operator/api/v1alpha1"
-	"github.com/sap/component-operator/internal/flux"
 	"github.com/sap/component-operator/internal/object"
+	"github.com/sap/component-operator/internal/sources/flux"
+	"github.com/sap/component-operator/internal/sources/httprepository"
 )
 
 func makeFuncPostRead() component.HookFunc[*operatorv1alpha1.Component] {
 	return func(ctx context.Context, clnt client.Client, component *operatorv1alpha1.Component) error {
-		cleanup := func() error {
-			return nil
-		}
-
-		if !component.GetDeletionTimestamp().IsZero() {
-			return cleanup()
-		}
-
 		sourceRef := &component.Spec.SourceRef
 		sourceRefUrl := ""
 		sourceRefRevision := ""
 
 		switch {
-		case sourceRef.FluxGitRepository != nil, sourceRef.FluxOciRepository != nil, sourceRef.FluxBucket != nil, sourceRef.FluxHelmChart != nil:
-			if err := cleanup(); err != nil {
+		case sourceRef.HttpRepository != nil:
+			url, revision, err := httprepository.GetUrlAndRevision(component.Spec.SourceRef.HttpRepository.Url, component.Spec.SourceRef.HttpRepository.RevisionHeader)
+			if err != nil {
 				return err
 			}
 
+			sourceRefUrl = url
+			sourceRefRevision = revision
+		case sourceRef.FluxGitRepository != nil, sourceRef.FluxOciRepository != nil, sourceRef.FluxBucket != nil, sourceRef.FluxHelmChart != nil:
 			var sourceName operatorv1alpha1.NamespacedName
 			var source flux.Source
 
@@ -82,7 +79,7 @@ func makeFuncPostRead() component.HookFunc[*operatorv1alpha1.Component] {
 			sourceRefUrl = artifact.URL
 			sourceRefRevision = artifact.Revision
 		default:
-			return fmt.Errorf("unable to get source; one of fluxGitRepository, fluxOciRepository, fluxBucket, fluxHelmChart must be defined")
+			return fmt.Errorf("unable to get source; one of httpRepository, fluxGitRepository, fluxOciRepository, fluxBucket, fluxHelmChart must be defined")
 		}
 
 		sourceRef.Init(sourceRefUrl, sourceRefRevision)

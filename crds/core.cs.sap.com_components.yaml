@@ -144,7 +144,7 @@ spec:
                 description: |-
                   SourceReference models the source of the templates used to render the dependent resources.
                   Exactly one of the options must be provided. Before accessing the Url() or Revision() methods,
-                  a SourceReference must be loaded by calling LoadSourceReference().
+                  a SourceReference must be loaded by calling Init().
                 properties:
                   fluxBucket:
                     description: Reference to a flux Bucket.
@@ -185,6 +185,21 @@ spec:
                         type: string
                     required:
                     - name
+                    type: object
+                  httpRepository:
+                    description: Reference to a generic http repository.
+                    properties:
+                      revisionHeader:
+                        description: |-
+                          Name of the header containing the revision of the source artifact. The returned header value can be any format, but must uniquely identify the
+                          content of the source artifact. If unspecified, the ETag header will be used.
+                        type: string
+                      url:
+                        description: |-
+                          URL of the source. Authentication is currently not supported. The operator will make HEAD requests to retrieve the revision and a potentially
+                          redirected actual location of the source artifact. Redirects will be followed as long as the response does not
+                          contain the specified revision header.
+                        type: string
                     type: object
                 type: object
               timeout:

@@ -41,6 +41,7 @@ func (g *Generator) Generate(ctx context.Context, namespace string, name string,
 	spec := parameters.(*operatorv1alpha1.ComponentSpec)
 
 	url := spec.SourceRef.Url()
+	revision := spec.SourceRef.Revision()
 
 	var decryptionProvider string
 	var decryptionKeys map[string][]byte
@@ -49,7 +50,7 @@ func (g *Generator) Generate(ctx context.Context, namespace string, name string,
 		decryptionKeys = spec.Decryption.SecretRef.Data()
 	}
 
-	generator, err := GetGenerator(url+"/"+spec.Path, url, spec.Path, g.client, decryptionProvider, decryptionKeys)
+	generator, err := GetGenerator(url+"\n"+revision+"\n"+spec.Path, url, spec.Path, g.client, decryptionProvider, decryptionKeys)
 	if err != nil {
 		return nil, err
 	}
