@@ -7,6 +7,7 @@ require (
 	github.com/drone/envsubst v1.0.3
 	github.com/fluxcd/source-controller/api v1.3.0
 	github.com/getsops/sops/v3 v3.9.0
+	github.com/go-logr/logr v1.4.2
 	github.com/pkg/errors v0.9.1
 	github.com/sap/component-operator-runtime v0.3.45
 	github.com/sap/go-generics v0.2.20
@@ -80,7 +81,6 @@ require (
 	github.com/getsops/gopgagent v0.0.0-20240527072608-0c14999532fe // indirect
 	github.com/go-errors/errors v1.5.1 // indirect
 	github.com/go-jose/go-jose/v4 v4.0.2 // indirect
-	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-logr/zapr v1.3.0 // indirect
 	github.com/go-openapi/jsonpointer v0.20.2 // indirect
