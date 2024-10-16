@@ -208,7 +208,7 @@ func (c *Component) NamespacedName() apitypes.NamespacedName {
 
 // Reports the readiness of the component.
 func (c *Component) IsReady() bool {
-	return c.Status.IsReady()
+	return c.Status.ObservedGeneration == c.Generation && c.Status.IsReady()
 }
 
 // +kubebuilder:object:root=true
