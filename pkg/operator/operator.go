@@ -31,6 +31,7 @@ import (
 )
 
 // TODO: write some logs (e.g. in the hooks)
+// TODO: use source digest instead of (resp. in parallel to) source revision
 
 const Name = "component-operator.cs.sap.com"
 
@@ -123,7 +124,7 @@ func (o *Operator) Setup(mgr ctrl.Manager) error {
 		o.options.Name,
 		resourceGenerator,
 		component.ReconcilerOptions{
-			UpdatePolicy: &[]reconciler.UpdatePolicy{reconciler.UpdatePolicySsaOverride}[0],
+			UpdatePolicy: ref(reconciler.UpdatePolicySsaOverride),
 		},
 	).WithPostReadHook(
 		makeFuncPostRead(),
