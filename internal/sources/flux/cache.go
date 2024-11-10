@@ -130,6 +130,10 @@ func (h *sourceHandler) Update(ctx context.Context, e event.TypedUpdateEvent[cli
 	if artifact == nil {
 		return
 	}
+	newDigest := artifact.Digest
+	if newDigest == "" {
+		return
+	}
 	newRevision := artifact.Revision
 	if newRevision == "" {
 		return
@@ -140,11 +144,11 @@ func (h *sourceHandler) Update(ctx context.Context, e event.TypedUpdateEvent[cli
 		h.indexKey: client.ObjectKeyFromObject(e.ObjectNew).String(),
 	}); err != nil {
 		// TODO
-		// log.Error(err, "failed to list objects for source revision change")
+		// log.Error(err, "failed to list components")
 		return
 	}
 	for _, c := range componentList.Items {
-		if c.IsReady() && c.Status.LastAttemptedRevision == newRevision {
+		if c.IsReady() && c.Status.LastAttemptedDigest == newDigest && c.Status.LastAttemptedRevision == newRevision {
 			continue
 		}
 		q.Add(reconcile.Request{NamespacedName: apitypes.NamespacedName{

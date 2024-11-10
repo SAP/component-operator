@@ -53,13 +53,16 @@ func (c *Checker) Start(ctx context.Context) error {
 		}
 		for _, component := range componentList.Items {
 			if component.Spec.SourceRef.HttpRepository != nil {
-				_, revision, err := GetUrlAndRevision(component.Spec.SourceRef.HttpRepository.Url, component.Spec.SourceRef.HttpRepository.RevisionHeader)
+				url := component.Spec.SourceRef.HttpRepository.Url
+				digestHeader := component.Spec.SourceRef.HttpRepository.DigestHeader
+				revisionHeader := component.Spec.SourceRef.HttpRepository.RevisionHeader
+				_, digest, revision, err := GetArtifact(url, digestHeader, revisionHeader)
 				if err == nil {
-					if revision != component.Status.LastAttemptedRevision {
+					if digest != component.Status.LastAttemptedDigest || revision != component.Status.LastAttemptedRevision {
 						c.reconciler.Trigger(component.Namespace, component.Name)
 					}
 				} else {
-					c.logger.Error(err, "error fetching revision from http repository", "url", component.Spec.SourceRef.HttpRepository.Url, "revisionHeader", component.Spec.SourceRef.HttpRepository.RevisionHeader)
+					c.logger.Error(err, "error fetching revision from http repository", "url", url, "digestHeader", digestHeader, "revisionHeader", revisionHeader)
 				}
 			}
 		}
