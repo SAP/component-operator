@@ -31,6 +31,10 @@ import (
 
 func makeFuncPostRead() component.HookFunc[*operatorv1alpha1.Component] {
 	return func(ctx context.Context, clnt client.Client, component *operatorv1alpha1.Component) error {
+		if !component.DeletionTimestamp.IsZero() {
+			return nil
+		}
+
 		sourceRef := &component.Spec.SourceRef
 		sourceRefUrl := ""
 		sourceRefRevision := ""
