@@ -12,7 +12,7 @@ Here, components are understood as sets of Kubernetes resources (such as deploym
 
 Thus, components are similar to flux kustomizations, but have some important advantages:
 - They use the [component-operator-runtime](https://github.com/sap/component-operator-runtime) framework to render and deploy dependent objects; therefore the manifest source can be any input that is understood by component-operator-runtime's [KustomizeGenerator](https://sap.github.io/component-operator-runtime/docs/generators/kustomize/) or [HelmGenerator](https://sap.github.io/component-operator-runtime/docs/generators/helm/). In particular, go-templatized kustomizations are allowed; check the [component-operator-runtime documentation](https://sap.github.io/component-operator-runtime/docs) for details.
-- It is possible to pin components to a specific source revision through the `spec.revision` field.
+- It is possible to pin components to a specific source revision or digest through the `spec.revision` and `spec.digest` fields, respectively.
 - Dependencies (as specified in `spec.dependencies`) are not only honored at creation/update, but also on deletion.
 
 A sample component could look like this:
@@ -111,12 +111,12 @@ sourceRef:
 
 Cross-namespace references are allowed; if namespace is not provided, the source will be assumed to exist in the component's namespace.
 
-### Source revision
+### Source revision and digest
 
-It is possible to pin a `Component` resource to a specific revision of the source artifact by setting `spec.revision`.
-Pinning means that the component will remain in a `Pending` state, until the used source object's revision matches the the value
-specified in `spec.revision`. More precisely, in case of flux source resources, the field refers to `status.artifact.revision` of the flux object.
-It should be noted that a revision mismatch in the above sense never blocks the deletion of the component.
+It is possible to pin a `Component` resource to a specific revision or digest of the source artifact by setting `spec.revision` and `spec.digest`, respectively.
+Pinning means that the component will remain in a `Pending` state, until the used source object's revision or digest matches the the value
+specified in `spec.revision` or `spec.digest`. In case of flux sources, revision and digest refer to `status.artifact.revision` and `status.artifact.digest` of the according flux object.
+It should be noted that a revision or digest mismatch in the above sense never blocks the deletion of the component.
 
 ### Source path
 

@@ -56,6 +56,7 @@ func init() {
 	}()
 }
 
+// note: id must uniquely identify the decrypted content downloaded from url/path
 func GetGenerator(id string, url string, path string, clnt client.Client, decryptionProvider string, decryptionKeys map[string][]byte) (manifests.Generator, error) {
 	mutex.Lock()
 	defer mutex.Unlock()

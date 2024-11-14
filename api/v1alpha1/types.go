@@ -26,6 +26,7 @@ type ComponentSpec struct {
 	component.TimeoutSpec   `json:",inline"`
 	// +required
 	SourceRef    SourceReference                `json:"sourceRef"`
+	Digest       string                         `json:"digest,omitempty"`
 	Revision     string                         `json:"revision,omitempty"`
 	Path         string                         `json:"path,omitempty"`
 	Values       *apiextensionsv1.JSON          `json:"values,omitempty"`
@@ -36,7 +37,7 @@ type ComponentSpec struct {
 }
 
 // SourceReference models the source of the templates used to render the dependent resources.
-// Exactly one of the options must be provided. Before accessing the Url() or Revision() methods,
+// Exactly one of the options must be provided. Before accessing the Url(), Digest() or Revision() methods,
 // a SourceReference must be loaded by calling Init().
 type SourceReference struct {
 	HttpRepository    *HttpRepository    `json:"httpRepository,omitempty"`
@@ -45,18 +46,20 @@ type SourceReference struct {
 	FluxBucket        *FluxBucket        `json:"fluxBucket,omitempty"`
 	FluxHelmChart     *FluxHelmChart     `json:"fluxHelmChart,omitempty"`
 	url               string             `json:"-"`
+	digest            string             `json:"-"`
 	revision          string             `json:"-"`
 	loaded            bool               `json:"-"`
 }
 
 // Initialize source reference. This is meant to be called by the reconciler.
 // Other consumers should probably not (need to) call this.
-func (r *SourceReference) Init(url string, revision string) {
+func (r *SourceReference) Init(url string, digest string, revision string) {
 	if r.loaded {
 		// note: this panic indicates a programmatic error on the consumer side
 		panic("reference already initialized")
 	}
 	r.url = url
+	r.digest = digest
 	r.revision = revision
 	r.loaded = true
 }
@@ -72,8 +75,18 @@ func (r *SourceReference) Url() string {
 	return r.url
 }
 
+// Get the digest of a loaded source reference. Calling Digest() on a not-loaded source reference will panic.
+// The returned digest uniquely identifies the content of the referenced archive.
+func (r *SourceReference) Digest() string {
+	if !r.loaded {
+		// note: this panic indicates a programmatic error on the consumer side
+		panic("access to unloaded reference")
+	}
+	return r.digest
+}
+
 // Get the revision of a loaded source reference. Calling Revision() on a not-loaded source reference will panic.
-// The returned revision is unique for the referenced archive (usually a Git SHA or hash or digest).
+// The returned revision is often but not always unique for the referenced archive (usually a Git SHA or hash or digest).
 func (r *SourceReference) Revision() string {
 	if !r.loaded {
 		// note: this panic indicates a programmatic error on the consumer side
@@ -93,12 +106,15 @@ func (r *SourceReference) Equals(s *SourceReference) bool {
 
 // Reference to a generic http repository.
 type HttpRepository struct {
-	// URL of the source. Authentication is currently not supported. The operator will make HEAD requests to retrieve the revision and a potentially
-	// redirected actual location of the source artifact. Redirects will be followed as long as the response does not
-	// contain the specified revision header.
+	// URL of the source. Authentication is currently not supported. The operator will make HEAD requests to retrieve the digest/revision
+	// and a potentially redirected actual location of the source artifact. Redirects will be followed as long as the response does not
+	// contain the specified digest header.
 	Url string `json:"url,omitempty"`
-	// Name of the header containing the revision of the source artifact. The returned header value can be any format, but must uniquely identify the
-	// content of the source artifact. If unspecified, the ETag header will be used.
+	// Name of the header containing the digest of the source artifact. The returned header value can be any format, but must uniquely identify the
+	// content of the source artifact. Defaults to the ETag header.
+	DigestHeader string `json:"digestHeader,omitempty"`
+	// Name of the header containing the revision of the source artifact. The returned header value can be any format.
+	// Defaults to the header specified in DigestHeader.
 	RevisionHeader string `json:"revisionHeader,omitempty"`
 }
 
@@ -176,7 +192,9 @@ func (n NamespacedName) String() string {
 // ComponentStatus defines the observed state of Component.
 type ComponentStatus struct {
 	component.Status      `json:",inline"`
+	LastAttemptedDigest   string `json:"lastAttemptedDigest,omitempty"`
 	LastAttemptedRevision string `json:"lastAttemptedRevision,omitempty"`
+	LastAppliedDigest     string `json:"lastAppliedDigest,omitempty"`
 	LastAppliedRevision   string `json:"lastAppliedRevision,omitempty"`
 }
 
