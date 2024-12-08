@@ -15,6 +15,7 @@ package decrypt
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -47,14 +48,12 @@ const (
 
 var (
 	sopsFormatToString = map[sopsformats.Format]string{
-		sopsformats.Binary: "binary",
 		sopsformats.Dotenv: "dotenv",
 		sopsformats.Ini:    "INI",
 		sopsformats.Json:   "JSON",
 		sopsformats.Yaml:   "YAML",
 	}
 	sopsFormatToMarkerBytes = map[sopsformats.Format][]byte{
-		sopsformats.Binary: []byte("\"mac\": \"ENC["),
 		sopsformats.Dotenv: []byte("sops_mac=ENC["),
 		sopsformats.Ini:    []byte("[sops]"),
 		sopsformats.Json:   []byte("\"mac\": \"ENC["),
@@ -143,13 +142,33 @@ func (d *SopsDecryptor) SopsDecryptWithFormat(input []byte, inputFormat sopsform
 		return nil, sopsUserErr("error decrypting sops tree", err)
 	}
 
-	outputStore := sopscommon.StoreForFormat(outputFormat, sopsconfig.NewStoresConfig())
-	out, err := outputStore.EmitPlainFile(tree.Branches)
-	if err != nil {
-		return nil, sopsUserErr(fmt.Sprintf("failed to emit encrypted %s file as decrypted %s",
-			sopsFormatToString[inputFormat], sopsFormatToString[outputFormat]), err)
+	if seemsBinary(&tree) {
+		outputStore := sopscommon.StoreForFormat(sopsformats.Json, sopsconfig.NewStoresConfig())
+		out, err := outputStore.EmitPlainFile(tree.Branches)
+		if err != nil {
+			return nil, sopsUserErr(fmt.Sprintf("failed to emit encrypted %s file as decrypted %s",
+				sopsFormatToString[inputFormat], sopsFormatToString[outputFormat]), err)
+		}
+		var outData struct {
+			Data *string `json:"data"`
+		}
+		if err := json.Unmarshal(out, &outData); err != nil {
+			return nil, errors.Wrap(err, "error deserializing decrypted output")
+		}
+		if outData.Data == nil {
+			return nil, fmt.Errorf("no data found in decrypted output")
+		}
+		out = []byte(*outData.Data)
+		return out, nil
+	} else {
+		outputStore := sopscommon.StoreForFormat(outputFormat, sopsconfig.NewStoresConfig())
+		out, err := outputStore.EmitPlainFile(tree.Branches)
+		if err != nil {
+			return nil, sopsUserErr(fmt.Sprintf("failed to emit encrypted %s file as decrypted %s",
+				sopsFormatToString[inputFormat], sopsFormatToString[outputFormat]), err)
+		}
+		return out, nil
 	}
-	return out, err
 }
 
 func (d *SopsDecryptor) Cleanup() {
@@ -165,6 +184,18 @@ func detectFormatFromMarkerBytes(b []byte) sopsformats.Format {
 		}
 	}
 	return unsupportedFormat
+}
+func seemsBinary(tree *sops.Tree) bool {
+	if len(tree.Branches[0]) != 1 {
+		return false
+	}
+	if tree.Branches[0][0].Key != "data" {
+		return false
+	}
+	if _, ok := tree.Branches[0][0].Value.(string); !ok {
+		return false
+	}
+	return true
 }
 
 func sopsUserErr(msg string, err error) error {
