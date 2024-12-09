@@ -154,6 +154,33 @@ The replacements may be defined either inline in `spec.postBuild.substitute` as 
 the keys of the secrets will be interpreted as variable names (and therefore have to be valid bash variable names). If multiple secrets, and
 maybe inline substitutions are provided, they will be merged in the usual order (secrets in order of appearance, and then inline content). 
 
+### Adoption policy
+
+It can happen that a dependent object exists in the cluster already, but is not managed by the component object being reconciled (the ownership is determined through the label `component-operator.cs.sap.com/owner-id`). The behaviour of component-operator in that situation can be configured by setting `spec.adoptionPolicy`. The following values are possible:
+- `IfUnowned` (which is also the default behaviour if the adoption policy attribute is unset): adopt existing objects, unless they have the above label set, but with a value pointing to a different owning component; in that case, a failure will occur
+- `Never`:  always fail if an object already exists (not owned by the current component of course)
+- `Always`: always adopt existing objects.
+
+The adoption policy can be overridden on a per-object level by setting annotation `component-operator.cs.sap.com/adoption-policy`.
+
+### Update policy
+
+It is possible to tweak how component-operator performs updates of dependent objects by setting `spec.updatePolicy`. The following values are supported:
+- `Replace`: use a PUT request to update the object; this corresponds to `kubectl replace`
+- `Recreate`: delete and recreate objects which are to be updated
+- `SsaMerge`: use a server-side-apply PATCH request to update the object; this corresponds to `kubectl apply --server-side --force-conflicts`
+- `SsaOverride` (which is the default behaviour if the update policy is not specified): same as `SsaMerge` and, in addition, claim all existing fields that have a field owner starting with prefix `kubectl` or `helm`; this reverts changes done by these field managers, respectively drops affected fields if not specified by the submitted intent and not owned by somebody else.
+
+The update policy can be overridden on a per-object level by setting annotation `component-operator.cs.sap.com/update-policy`.
+
+### Delete policy
+
+It is possible to tweak what happens with dependents objects when the owning component is deleted. By default objects are deleted.
+By setting `spec.deletePolicy` to `Orphan`, dependent objects will not be deleted in that case, but just left around in the cluster.
+Note that this affects only the case when the component is deleted. If a depdendent object becomes obsolete because a new revision
+of the component manifests does no longer contain it, it will still be removed from the cluster.
+The delete policy can be overridden on a per-object level by setting annotation `component-operator.cs.sap.com/delete-policy`.
+
 ### Dependencies
 
 As with flux kustomizations, it is possible to declare dependencies between `Component` objects, that means, to list other components,

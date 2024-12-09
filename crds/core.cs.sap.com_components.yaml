@@ -46,6 +46,14 @@ spec:
           spec:
             description: ComponentSpec defines the desired state of Component.
             properties:
+              adoptionPolicy:
+                description: AdoptionPolicy defines how the reconciler reacts if a
+                  dependent object exists but has no or a different owner.
+                enum:
+                - Never
+                - IfUnowned
+                - Always
+                type: string
               decryption:
                 description: Decryption settings.
                 properties:
@@ -68,6 +76,13 @@ spec:
                 required:
                 - secretRef
                 type: object
+              deletePolicy:
+                description: DeletePolicy defines how the reconciler will delete dependent
+                  objects.
+                enum:
+                - Delete
+                - Orphan
+                type: string
               dependencies:
                 items:
                   description: Dependency models a dependency of the containing component
@@ -211,6 +226,15 @@ spec:
                 type: object
               timeout:
                 pattern: ^([0-9]+(\.[0-9]+)?(ns|us|µs|ms|s|m|h))+$
+                type: string
+              updatePolicy:
+                description: UpdatePolicy defines how the reconciler will update dependent
+                  objects.
+                enum:
+                - Recreate
+                - Replace
+                - SsaMerge
+                - SsaOverride
                 type: string
               values:
                 x-kubernetes-preserve-unknown-fields: true

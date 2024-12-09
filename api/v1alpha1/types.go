@@ -24,6 +24,7 @@ type ComponentSpec struct {
 	component.RequeueSpec   `json:",inline"`
 	component.RetrySpec     `json:",inline"`
 	component.TimeoutSpec   `json:",inline"`
+	component.PolicySpec    `json:",inline"`
 	// +required
 	SourceRef    SourceReference                `json:"sourceRef"`
 	Digest       string                         `json:"digest,omitempty"`

@@ -82,6 +82,7 @@ func (in *ComponentSpec) DeepCopyInto(out *ComponentSpec) {
 	in.RequeueSpec.DeepCopyInto(&out.RequeueSpec)
 	in.RetrySpec.DeepCopyInto(&out.RetrySpec)
 	in.TimeoutSpec.DeepCopyInto(&out.TimeoutSpec)
+	out.PolicySpec = in.PolicySpec
 	in.SourceRef.DeepCopyInto(&out.SourceRef)
 	if in.Values != nil {
 		in, out := &in.Values, &out.Values
