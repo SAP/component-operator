@@ -3,7 +3,7 @@ module github.com/sap/component-operator
 go 1.23.4
 
 require (
-	filippo.io/age v1.2.0
+	filippo.io/age v1.2.1
 	github.com/drone/envsubst v1.0.3
 	github.com/fluxcd/source-controller/api v1.4.1
 	github.com/getsops/sops/v3 v3.9.2
