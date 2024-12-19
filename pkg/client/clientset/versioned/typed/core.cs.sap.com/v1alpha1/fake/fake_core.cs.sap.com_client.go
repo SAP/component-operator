@@ -18,7 +18,7 @@ type FakeCoreV1alpha1 struct {
 }
 
 func (c *FakeCoreV1alpha1) Components(namespace string) v1alpha1.ComponentInterface {
-	return &FakeComponents{c, namespace}
+	return newFakeComponents(c, namespace)
 }
 
 // RESTClient returns a RESTClient that is used to communicate
