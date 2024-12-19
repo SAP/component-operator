@@ -41,6 +41,8 @@ func (g *Generator) Generate(ctx context.Context, namespace string, name string,
 	spec := parameters.(*operatorv1alpha1.ComponentSpec)
 
 	url := spec.SourceRef.Url()
+	digest := spec.SourceRef.Digest()
+	path := spec.Path
 
 	var decryptionProvider string
 	var decryptionKeys map[string][]byte
@@ -49,7 +51,9 @@ func (g *Generator) Generate(ctx context.Context, namespace string, name string,
 		decryptionKeys = spec.Decryption.SecretRef.Data()
 	}
 
-	generator, err := GetGenerator(url+"/"+spec.Path, url, spec.Path, g.client, decryptionProvider, decryptionKeys)
+	// note: url is actually not needed in the generator id, digest is enough to identify the content
+	id := url + "\n" + digest + "\n" + path + "\n" + decryptionProvider + "\n" + calculateDigest(decryptionKeys)
+	generator, err := GetGenerator(id, url, path, g.client, decryptionProvider, decryptionKeys)
 	if err != nil {
 		return nil, err
 	}

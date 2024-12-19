@@ -9,6 +9,7 @@ import (
 	"flag"
 
 	"github.com/pkg/errors"
+
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -24,11 +25,13 @@ import (
 	"github.com/sap/component-operator-runtime/pkg/reconciler"
 
 	operatorv1alpha1 "github.com/sap/component-operator/api/v1alpha1"
-	"github.com/sap/component-operator/internal/flux"
 	"github.com/sap/component-operator/internal/generator"
+	"github.com/sap/component-operator/internal/sources/flux"
+	"github.com/sap/component-operator/internal/sources/httprepository"
 )
 
 // TODO: write some logs (e.g. in the hooks)
+// TODO: use source digest instead of (resp. in parallel to) source revision
 
 const Name = "component-operator.cs.sap.com"
 
@@ -117,11 +120,11 @@ func (o *Operator) Setup(mgr ctrl.Manager) error {
 		return errors.Wrap(err, "error initializing resource generator")
 	}
 
-	if err := component.NewReconciler[*operatorv1alpha1.Component](
+	reconciler := component.NewReconciler[*operatorv1alpha1.Component](
 		o.options.Name,
 		resourceGenerator,
 		component.ReconcilerOptions{
-			UpdatePolicy: &[]reconciler.UpdatePolicy{reconciler.UpdatePolicySsaOverride}[0],
+			UpdatePolicy: ref(reconciler.UpdatePolicySsaOverride),
 		},
 	).WithPostReadHook(
 		makeFuncPostRead(),
@@ -131,9 +134,13 @@ func (o *Operator) Setup(mgr ctrl.Manager) error {
 		makeFuncPostReconcile(),
 	).WithPreDeleteHook(
 		makeFuncPreDelete(mgr.GetCache()),
-	).SetupWithManagerAndBuilder(mgr, blder); err != nil {
+	)
+
+	if err := reconciler.SetupWithManagerAndBuilder(mgr, blder); err != nil {
 		return errors.Wrapf(err, "unable to create controller")
 	}
+
+	mgr.Add(httprepository.NewChecker(mgr.GetCache(), reconciler, mgr.GetLogger()))
 
 	return nil
 }

@@ -57,16 +57,16 @@ func SetupCache(mgr manager.Manager, blder *builder.Builder) error {
 	blder.
 		Watches(
 			&fluxsourcev1beta2.GitRepository{},
-			newHandler(mgr.GetCache(), gitRepositoryIndexKey)).
+			newSourceHandler(mgr.GetCache(), gitRepositoryIndexKey)).
 		Watches(
 			&fluxsourcev1beta2.OCIRepository{},
-			newHandler(mgr.GetCache(), ociRepositoryIndexKey)).
+			newSourceHandler(mgr.GetCache(), ociRepositoryIndexKey)).
 		Watches(
 			&fluxsourcev1beta2.Bucket{},
-			newHandler(mgr.GetCache(), bucketIndexKey)).
+			newSourceHandler(mgr.GetCache(), bucketIndexKey)).
 		Watches(
 			&fluxsourcev1beta2.HelmChart{},
-			newHandler(mgr.GetCache(), helmChartIndexKey))
+			newSourceHandler(mgr.GetCache(), helmChartIndexKey))
 
 	return nil
 }
@@ -108,18 +108,18 @@ type sourceHandler struct {
 	indexKey string
 }
 
-func newHandler(cache cache.Cache, indexKey string) handler.EventHandler {
+func newSourceHandler(cache cache.Cache, indexKey string) handler.TypedEventHandler[client.Object, reconcile.Request] {
 	return &sourceHandler{
 		cache:    cache,
 		indexKey: indexKey,
 	}
 }
 
-func (h *sourceHandler) Create(ctx context.Context, e event.CreateEvent, q workqueue.TypedRateLimitingInterface[reconcile.Request]) {
+func (h *sourceHandler) Create(ctx context.Context, e event.TypedCreateEvent[client.Object], q workqueue.TypedRateLimitingInterface[reconcile.Request]) {
 	// new sources will never be immediately ready, so nothing has to be done here
 }
 
-func (h *sourceHandler) Update(ctx context.Context, e event.UpdateEvent, q workqueue.TypedRateLimitingInterface[reconcile.Request]) {
+func (h *sourceHandler) Update(ctx context.Context, e event.TypedUpdateEvent[client.Object], q workqueue.TypedRateLimitingInterface[reconcile.Request]) {
 	newSource := e.ObjectNew.(Source)
 
 	if !object.IsReady(newSource) {
@@ -128,6 +128,10 @@ func (h *sourceHandler) Update(ctx context.Context, e event.UpdateEvent, q workq
 
 	artifact := newSource.GetArtifact()
 	if artifact == nil {
+		return
+	}
+	newDigest := artifact.Digest
+	if newDigest == "" {
 		return
 	}
 	newRevision := artifact.Revision
@@ -140,11 +144,11 @@ func (h *sourceHandler) Update(ctx context.Context, e event.UpdateEvent, q workq
 		h.indexKey: client.ObjectKeyFromObject(e.ObjectNew).String(),
 	}); err != nil {
 		// TODO
-		// log.Error(err, "failed to list objects for source revision change")
+		// log.Error(err, "failed to list components")
 		return
 	}
 	for _, c := range componentList.Items {
-		if c.IsReady() && c.Status.LastAttemptedRevision == newRevision {
+		if c.IsReady() && c.Status.LastAttemptedDigest == newDigest && c.Status.LastAttemptedRevision == newRevision {
 			continue
 		}
 		q.Add(reconcile.Request{NamespacedName: apitypes.NamespacedName{
@@ -154,10 +158,10 @@ func (h *sourceHandler) Update(ctx context.Context, e event.UpdateEvent, q workq
 	}
 }
 
-func (h *sourceHandler) Delete(ctx context.Context, e event.DeleteEvent, q workqueue.TypedRateLimitingInterface[reconcile.Request]) {
+func (h *sourceHandler) Delete(ctx context.Context, e event.TypedDeleteEvent[client.Object], q workqueue.TypedRateLimitingInterface[reconcile.Request]) {
 	// no need to queue components if source is deleted (reconciliation of the component would anyway fail)
 }
 
-func (h *sourceHandler) Generic(context.Context, event.GenericEvent, workqueue.TypedRateLimitingInterface[reconcile.Request]) {
+func (h *sourceHandler) Generic(ctx context.Context, e event.TypedGenericEvent[client.Object], q workqueue.TypedRateLimitingInterface[reconcile.Request]) {
 	// generic events are not expected to arrive on the watch that uses this handler, so nothing to do here
 }

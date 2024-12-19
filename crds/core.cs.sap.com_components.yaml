@@ -46,6 +46,14 @@ spec:
           spec:
             description: ComponentSpec defines the desired state of Component.
             properties:
+              adoptionPolicy:
+                description: AdoptionPolicy defines how the reconciler reacts if a
+                  dependent object exists but has no or a different owner.
+                enum:
+                - Never
+                - IfUnowned
+                - Always
+                type: string
               decryption:
                 description: Decryption settings.
                 properties:
@@ -68,6 +76,13 @@ spec:
                 required:
                 - secretRef
                 type: object
+              deletePolicy:
+                description: DeletePolicy defines how the reconciler will delete dependent
+                  objects.
+                enum:
+                - Delete
+                - Orphan
+                type: string
               dependencies:
                 items:
                   description: Dependency models a dependency of the containing component
@@ -81,6 +96,8 @@ spec:
                   - name
                   type: object
                 type: array
+              digest:
+                type: string
               kubeConfig:
                 description: KubeConfigSpec defines a reference to a kubeconfig.
                 properties:
@@ -143,8 +160,8 @@ spec:
               sourceRef:
                 description: |-
                   SourceReference models the source of the templates used to render the dependent resources.
-                  Exactly one of the options must be provided. Before accessing the Url() or Revision() methods,
-                  a SourceReference must be loaded by calling LoadSourceReference().
+                  Exactly one of the options must be provided. Before accessing the Url(), Digest() or Revision() methods,
+                  a SourceReference must be loaded by calling Init().
                 properties:
                   fluxBucket:
                     description: Reference to a flux Bucket.
@@ -186,9 +203,38 @@ spec:
                     required:
                     - name
                     type: object
+                  httpRepository:
+                    description: Reference to a generic http repository.
+                    properties:
+                      digestHeader:
+                        description: |-
+                          Name of the header containing the digest of the source artifact. The returned header value can be any format, but must uniquely identify the
+                          content of the source artifact. Defaults to the ETag header.
+                        type: string
+                      revisionHeader:
+                        description: |-
+                          Name of the header containing the revision of the source artifact. The returned header value can be any format.
+                          Defaults to the header specified in DigestHeader.
+                        type: string
+                      url:
+                        description: |-
+                          URL of the source. Authentication is currently not supported. The operator will make HEAD requests to retrieve the digest/revision
+                          and a potentially redirected actual location of the source artifact. Redirects will be followed as long as the response does not
+                          contain the specified digest header.
+                        type: string
+                    type: object
                 type: object
               timeout:
                 pattern: ^([0-9]+(\.[0-9]+)?(ns|us|µs|ms|s|m|h))+$
+                type: string
+              updatePolicy:
+                description: UpdatePolicy defines how the reconciler will update dependent
+                  objects.
+                enum:
+                - Recreate
+                - Replace
+                - SsaMerge
+                - SsaOverride
                 type: string
               values:
                 x-kubernetes-preserve-unknown-fields: true
@@ -331,7 +377,11 @@ spec:
               lastAppliedAt:
                 format: date-time
                 type: string
+              lastAppliedDigest:
+                type: string
               lastAppliedRevision:
+                type: string
+              lastAttemptedDigest:
                 type: string
               lastAttemptedRevision:
                 type: string

@@ -24,30 +24,33 @@ import (
 	componentoperatorruntimetypes "github.com/sap/component-operator-runtime/pkg/types"
 
 	operatorv1alpha1 "github.com/sap/component-operator/api/v1alpha1"
-	"github.com/sap/component-operator/internal/flux"
 	"github.com/sap/component-operator/internal/object"
+	"github.com/sap/component-operator/internal/sources/flux"
+	"github.com/sap/component-operator/internal/sources/httprepository"
 )
 
 func makeFuncPostRead() component.HookFunc[*operatorv1alpha1.Component] {
 	return func(ctx context.Context, clnt client.Client, component *operatorv1alpha1.Component) error {
-		cleanup := func() error {
+		if !component.DeletionTimestamp.IsZero() {
 			return nil
-		}
-
-		if !component.GetDeletionTimestamp().IsZero() {
-			return cleanup()
 		}
 
 		sourceRef := &component.Spec.SourceRef
 		sourceRefUrl := ""
+		sourceRefDigest := ""
 		sourceRefRevision := ""
 
 		switch {
-		case sourceRef.FluxGitRepository != nil, sourceRef.FluxOciRepository != nil, sourceRef.FluxBucket != nil, sourceRef.FluxHelmChart != nil:
-			if err := cleanup(); err != nil {
+		case sourceRef.HttpRepository != nil:
+			url, digest, revision, err := httprepository.GetArtifact(component.Spec.SourceRef.HttpRepository.Url, component.Spec.SourceRef.HttpRepository.DigestHeader, component.Spec.SourceRef.HttpRepository.RevisionHeader)
+			if err != nil {
 				return err
 			}
 
+			sourceRefUrl = url
+			sourceRefDigest = digest
+			sourceRefRevision = revision
+		case sourceRef.FluxGitRepository != nil, sourceRef.FluxOciRepository != nil, sourceRef.FluxBucket != nil, sourceRef.FluxHelmChart != nil:
 			var sourceName operatorv1alpha1.NamespacedName
 			var source flux.Source
 
@@ -79,14 +82,29 @@ func makeFuncPostRead() component.HookFunc[*operatorv1alpha1.Component] {
 			}
 
 			artifact := source.GetArtifact()
+
+			if artifact.URL == "" {
+				return componentoperatorruntimetypes.NewRetriableError(fmt.Errorf("source not ready (missing URL)"), ref(10*time.Second))
+			}
+			if artifact.Digest == "" {
+				return componentoperatorruntimetypes.NewRetriableError(fmt.Errorf("source not ready (missing digest)"), ref(10*time.Second))
+			}
+			if artifact.Revision == "" {
+				return componentoperatorruntimetypes.NewRetriableError(fmt.Errorf("source not ready (missing revision)"), ref(10*time.Second))
+			}
+
 			sourceRefUrl = artifact.URL
+			sourceRefDigest = artifact.Digest
 			sourceRefRevision = artifact.Revision
 		default:
-			return fmt.Errorf("unable to get source; one of fluxGitRepository, fluxOciRepository, fluxBucket, fluxHelmChart must be defined")
+			return fmt.Errorf("unable to get source; one of httpRepository, fluxGitRepository, fluxOciRepository, fluxBucket, fluxHelmChart must be defined")
 		}
 
-		sourceRef.Init(sourceRefUrl, sourceRefRevision)
+		sourceRef.Init(sourceRefUrl, sourceRefDigest, sourceRefRevision)
 
+		if component.Spec.Digest != "" && sourceRefDigest != component.Spec.Digest {
+			return componentoperatorruntimetypes.NewRetriableError(fmt.Errorf("source digest (%s) does not match specified digest (%s)", sourceRefDigest, component.Spec.Digest), ref(10*time.Second))
+		}
 		if component.Spec.Revision != "" && sourceRefRevision != component.Spec.Revision {
 			return componentoperatorruntimetypes.NewRetriableError(fmt.Errorf("source revision (%s) does not match specified revision (%s)", sourceRefRevision, component.Spec.Revision), ref(10*time.Second))
 		}
@@ -96,8 +114,9 @@ func makeFuncPostRead() component.HookFunc[*operatorv1alpha1.Component] {
 
 func makeFuncPreReconcile(cache cache.Cache) component.HookFunc[*operatorv1alpha1.Component] {
 	return func(ctx context.Context, clnt client.Client, component *operatorv1alpha1.Component) error {
-		// note: it is crucial to set status.lastAttemptedRevision here (in pre-reconcile), since generators
+		// note: it is crucial to set status.lastAttemptedDigest and status.lastAttemptedRevision here (in pre-reconcile), since generators
 		// might fetch the component from their context, relying on the field being already updated
+		component.Status.LastAttemptedDigest = component.Spec.SourceRef.Digest()
 		component.Status.LastAttemptedRevision = component.Spec.SourceRef.Revision()
 		for _, dependency := range component.Spec.Dependencies {
 			c := &operatorv1alpha1.Component{}
@@ -107,7 +126,7 @@ func makeFuncPreReconcile(cache cache.Cache) component.HookFunc[*operatorv1alpha
 				}
 				return err
 			}
-			if c.Spec.SourceRef.Equals(&component.Spec.SourceRef) && (c.Status.LastAttemptedRevision == "" || c.Status.LastAttemptedRevision != component.Status.LastAttemptedRevision) {
+			if c.Spec.SourceRef.Equals(&component.Spec.SourceRef) && (c.Status.LastAttemptedDigest == "" || c.Status.LastAttemptedDigest != component.Status.LastAttemptedDigest || c.Status.LastAttemptedRevision == "" || c.Status.LastAttemptedRevision != component.Status.LastAttemptedRevision) {
 				return componentoperatorruntimetypes.NewRetriableError(fmt.Errorf("dependent component %s not synced", dependency), nil)
 			}
 			if !c.IsReady() {
@@ -120,6 +139,7 @@ func makeFuncPreReconcile(cache cache.Cache) component.HookFunc[*operatorv1alpha
 
 func makeFuncPostReconcile() component.HookFunc[*operatorv1alpha1.Component] {
 	return func(ctx context.Context, clnt client.Client, component *operatorv1alpha1.Component) error {
+		component.Status.LastAppliedDigest = component.Status.LastAttemptedDigest
 		component.Status.LastAppliedRevision = component.Status.LastAttemptedRevision
 		return nil
 	}

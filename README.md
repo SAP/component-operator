@@ -12,7 +12,7 @@ Here, components are understood as sets of Kubernetes resources (such as deploym
 
 Thus, components are similar to flux kustomizations, but have some important advantages:
 - They use the [component-operator-runtime](https://github.com/sap/component-operator-runtime) framework to render and deploy dependent objects; therefore the manifest source can be any input that is understood by component-operator-runtime's [KustomizeGenerator](https://sap.github.io/component-operator-runtime/docs/generators/kustomize/) or [HelmGenerator](https://sap.github.io/component-operator-runtime/docs/generators/helm/). In particular, go-templatized kustomizations are allowed; check the [component-operator-runtime documentation](https://sap.github.io/component-operator-runtime/docs) for details.
-- It is possible to pin components to a specific source revision through the `spec.revision` field.
+- It is possible to pin components to a specific source revision or digest through the `spec.revision` and `spec.digest` fields, respectively.
 - Dependencies (as specified in `spec.dependencies`) are not only honored at creation/update, but also on deletion.
 
 A sample component could look like this:
@@ -111,12 +111,12 @@ sourceRef:
 
 Cross-namespace references are allowed; if namespace is not provided, the source will be assumed to exist in the component's namespace.
 
-### Source revision
+### Source revision and digest
 
-It is possible to pin a `Component` resource to a specific revision of the source artifact by setting `spec.revision`.
-Pinning means that the component will remain in a `Pending` state, until the used source object's revision matches the the value
-specified in `spec.revision`. More precisely, in case of flux source resources, the field refers to `status.artifact.revision` of the flux object.
-It should be noted that a revision mismatch in the above sense never blocks the deletion of the component.
+It is possible to pin a `Component` resource to a specific revision or digest of the source artifact by setting `spec.revision` and `spec.digest`, respectively.
+Pinning means that the component will remain in a `Pending` state, until the used source object's revision or digest matches the the value
+specified in `spec.revision` or `spec.digest`. In case of flux sources, revision and digest refer to `status.artifact.revision` and `status.artifact.digest` of the according flux object.
+It should be noted that a revision or digest mismatch in the above sense never blocks the deletion of the component.
 
 ### Source path
 
@@ -153,6 +153,33 @@ The rendered manifest may contain bash-style variable references, as defined by 
 The replacements may be defined either inline in `spec.postBuild.substitute` as `KEY: VALUE` pairs, or loaded by secret references, where
 the keys of the secrets will be interpreted as variable names (and therefore have to be valid bash variable names). If multiple secrets, and
 maybe inline substitutions are provided, they will be merged in the usual order (secrets in order of appearance, and then inline content). 
+
+### Adoption policy
+
+It can happen that a dependent object exists in the cluster already, but is not managed by the component object being reconciled (the ownership is determined through the label `component-operator.cs.sap.com/owner-id`). The behaviour of component-operator in that situation can be configured by setting `spec.adoptionPolicy`. The following values are possible:
+- `IfUnowned` (which is also the default behaviour if the adoption policy attribute is unset): adopt existing objects, unless they have the above label set, but with a value pointing to a different owning component; in that case, a failure will occur
+- `Never`:  always fail if an object already exists (not owned by the current component of course)
+- `Always`: always adopt existing objects.
+
+The adoption policy can be overridden on a per-object level by setting annotation `component-operator.cs.sap.com/adoption-policy`.
+
+### Update policy
+
+It is possible to tweak how component-operator performs updates of dependent objects by setting `spec.updatePolicy`. The following values are supported:
+- `Replace`: use a PUT request to update the object; this corresponds to `kubectl replace`
+- `Recreate`: delete and recreate objects which are to be updated
+- `SsaMerge`: use a server-side-apply PATCH request to update the object; this corresponds to `kubectl apply --server-side --force-conflicts`
+- `SsaOverride` (which is the default behaviour if the update policy is not specified): same as `SsaMerge` and, in addition, claim all existing fields that have a field owner starting with prefix `kubectl` or `helm`; this reverts changes done by these field managers, respectively drops affected fields if not specified by the submitted intent and not owned by somebody else.
+
+The update policy can be overridden on a per-object level by setting annotation `component-operator.cs.sap.com/update-policy`.
+
+### Delete policy
+
+It is possible to tweak what happens with dependents objects when the owning component is deleted. By default objects are deleted.
+By setting `spec.deletePolicy` to `Orphan`, dependent objects will not be deleted in that case, but just left around in the cluster.
+Note that this affects only the case when the component is deleted. If a depdendent object becomes obsolete because a new revision
+of the component manifests does no longer contain it, it will still be removed from the cluster.
+The delete policy can be overridden on a per-object level by setting annotation `component-operator.cs.sap.com/delete-policy`.
 
 ### Dependencies
 

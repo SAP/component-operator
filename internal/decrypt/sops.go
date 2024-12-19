@@ -20,6 +20,8 @@ import (
 	"path/filepath"
 	"sort"
 
+	"github.com/pkg/errors"
+
 	"filippo.io/age"
 
 	sops "github.com/getsops/sops/v3"
@@ -45,14 +47,12 @@ const (
 
 var (
 	sopsFormatToString = map[sopsformats.Format]string{
-		sopsformats.Binary: "binary",
 		sopsformats.Dotenv: "dotenv",
 		sopsformats.Ini:    "INI",
 		sopsformats.Json:   "JSON",
 		sopsformats.Yaml:   "YAML",
 	}
 	sopsFormatToMarkerBytes = map[sopsformats.Format][]byte{
-		sopsformats.Binary: []byte("\"mac\": \"ENC["),
 		sopsformats.Dotenv: []byte("sops_mac=ENC["),
 		sopsformats.Ini:    []byte("[sops]"),
 		sopsformats.Json:   []byte("\"mac\": \"ENC["),
@@ -141,13 +141,17 @@ func (d *SopsDecryptor) SopsDecryptWithFormat(input []byte, inputFormat sopsform
 		return nil, sopsUserErr("error decrypting sops tree", err)
 	}
 
+	if seemsBinary(&tree) {
+		outputFormat = sopsformats.Binary
+	}
+
 	outputStore := sopscommon.StoreForFormat(outputFormat, sopsconfig.NewStoresConfig())
 	out, err := outputStore.EmitPlainFile(tree.Branches)
 	if err != nil {
 		return nil, sopsUserErr(fmt.Sprintf("failed to emit encrypted %s file as decrypted %s",
 			sopsFormatToString[inputFormat], sopsFormatToString[outputFormat]), err)
 	}
-	return out, err
+	return out, nil
 }
 
 func (d *SopsDecryptor) Cleanup() {
@@ -164,12 +168,24 @@ func detectFormatFromMarkerBytes(b []byte) sopsformats.Format {
 	}
 	return unsupportedFormat
 }
+func seemsBinary(tree *sops.Tree) bool {
+	if len(tree.Branches[0]) != 1 {
+		return false
+	}
+	if tree.Branches[0][0].Key != "data" {
+		return false
+	}
+	if _, ok := tree.Branches[0][0].Value.(string); !ok {
+		return false
+	}
+	return true
+}
 
 func sopsUserErr(msg string, err error) error {
 	if userErr, ok := err.(sops.UserError); ok {
-		err = fmt.Errorf(userErr.UserError())
+		err = errors.New(userErr.UserError())
 	}
-	return fmt.Errorf("%s: %w", msg, err)
+	return errors.Wrap(err, msg)
 }
 
 func isOfflineMethod(mk sopskeys.MasterKey) bool {
