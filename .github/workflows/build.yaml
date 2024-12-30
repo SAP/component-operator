@@ -166,7 +166,12 @@ jobs:
     - name: Install Helm chart and deploy sample component
       run: |
         if [ -f examples/setup.yaml ]; then
-          kubectl apply -f examples/setup.yaml
+          # TODO: move this to an extra step
+          kubectl apply --server-side --field-manager integration-test --force-conflicts -f examples/setup.yaml
+          sleep 5
+        fi
+        if [ -f $CHART_DIRECTORY/.setup.yaml ]; then
+          kubectl apply --server-side --field-manager integration-test --force-conflicts-f $CHART_DIRECTORY/.setup.yaml
           sleep 5
         fi
         release_name=$(yq .name $CHART_DIRECTORY/Chart.yaml)
