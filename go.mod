@@ -6,18 +6,18 @@ require (
 	filippo.io/age v1.2.1
 	github.com/drone/envsubst v1.0.3
 	github.com/fluxcd/source-controller/api v1.4.1
-	github.com/getsops/sops/v3 v3.9.2
+	github.com/getsops/sops/v3 v3.9.3
 	github.com/go-logr/logr v1.4.2
 	github.com/pkg/errors v0.9.1
-	github.com/sap/component-operator-runtime v0.3.59
-	github.com/sap/go-generics v0.2.21
+	github.com/sap/component-operator-runtime v0.3.63
+	github.com/sap/go-generics v0.2.23
 	k8s.io/apiextensions-apiserver v0.32.0
 	k8s.io/apimachinery v0.32.0
 	k8s.io/client-go v0.32.0
 	k8s.io/code-generator v0.32.0
 	k8s.io/kube-aggregator v0.32.0
-	sigs.k8s.io/controller-runtime v0.19.3
-	sigs.k8s.io/controller-runtime/tools/setup-envtest v0.0.0-20241206182001-aea2e32a9365
+	sigs.k8s.io/controller-runtime v0.19.4
+	sigs.k8s.io/controller-runtime/tools/setup-envtest d19d76c3a88f
 	sigs.k8s.io/controller-tools v0.16.5
 	sigs.k8s.io/yaml v1.4.0
 )
