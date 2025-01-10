@@ -18,6 +18,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	fluxsourcev1 "github.com/fluxcd/source-controller/api/v1"
 	fluxsourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 
 	"github.com/sap/component-operator-runtime/pkg/component"
@@ -57,7 +58,7 @@ func makeFuncPostRead() component.HookFunc[*operatorv1alpha1.Component] {
 			switch {
 			case sourceRef.FluxGitRepository != nil:
 				sourceName = sourceRef.FluxGitRepository.WithDefaultNamespace(component.Namespace)
-				source = &fluxsourcev1beta2.GitRepository{}
+				source = &fluxsourcev1.GitRepository{}
 			case sourceRef.FluxOciRepository != nil:
 				sourceName = sourceRef.FluxOciRepository.WithDefaultNamespace(component.Namespace)
 				source = &fluxsourcev1beta2.OCIRepository{}
@@ -66,7 +67,7 @@ func makeFuncPostRead() component.HookFunc[*operatorv1alpha1.Component] {
 				source = &fluxsourcev1beta2.Bucket{}
 			case sourceRef.FluxHelmChart != nil:
 				sourceName = sourceRef.FluxHelmChart.WithDefaultNamespace(component.Namespace)
-				source = &fluxsourcev1beta2.HelmChart{}
+				source = &fluxsourcev1.HelmChart{}
 			default:
 				panic("this cannot happen")
 			}
