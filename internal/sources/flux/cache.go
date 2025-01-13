@@ -56,7 +56,7 @@ func SetupCache(mgr manager.Manager, blder *builder.Builder) error {
 
 	blder.
 		Watches(
-			&fluxsourcev1beta2.GitRepository{},
+			&fluxsourcev1.GitRepository{},
 			newSourceHandler(mgr.GetCache(), gitRepositoryIndexKey)).
 		Watches(
 			&fluxsourcev1beta2.OCIRepository{},
@@ -65,7 +65,7 @@ func SetupCache(mgr manager.Manager, blder *builder.Builder) error {
 			&fluxsourcev1beta2.Bucket{},
 			newSourceHandler(mgr.GetCache(), bucketIndexKey)).
 		Watches(
-			&fluxsourcev1beta2.HelmChart{},
+			&fluxsourcev1.HelmChart{},
 			newSourceHandler(mgr.GetCache(), helmChartIndexKey))
 
 	return nil
