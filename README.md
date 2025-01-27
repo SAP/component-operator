@@ -186,6 +186,10 @@ Note that this affects only the case when the component is deleted. If a depdend
 of the component manifests does no longer contain it, it will still be removed from the cluster.
 The delete policy can be overridden on a per-object level by setting annotation `component-operator.cs.sap.com/delete-policy`.
 
+### Auto-create missing namespaces
+
+By default, if the namespace of a dependent object does not exist, it will be created. This behaviour can be tweaked by setting the attribute `spec.missingNamespacesPolicy`. Allowed values are `Create` (default if not specified) and `DoNotCreate`.
+
 ### Dependencies
 
 As with flux kustomizations, it is possible to declare dependencies between `Component` objects, that means, to list other components,
