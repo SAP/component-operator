@@ -19,12 +19,13 @@ import (
 
 // ComponentSpec defines the desired state of Component.
 type ComponentSpec struct {
-	component.PlacementSpec `json:",inline"`
-	component.ClientSpec    `json:",inline"`
-	component.RequeueSpec   `json:",inline"`
-	component.RetrySpec     `json:",inline"`
-	component.TimeoutSpec   `json:",inline"`
-	component.PolicySpec    `json:",inline"`
+	component.PlacementSpec     `json:",inline"`
+	component.ClientSpec        `json:",inline"`
+	component.ImpersonationSpec `json:",inline"`
+	component.RequeueSpec       `json:",inline"`
+	component.RetrySpec         `json:",inline"`
+	component.TimeoutSpec       `json:",inline"`
+	component.PolicySpec        `json:",inline"`
 	// +required
 	SourceRef    SourceReference                `json:"sourceRef"`
 	Digest       string                         `json:"digest,omitempty"`

@@ -22,14 +22,12 @@ import (
 	operatorv1alpha1 "github.com/sap/component-operator/api/v1alpha1"
 )
 
-type Generator struct {
-	client client.Client
-}
+type Generator struct{}
 
 var _ manifests.Generator = &Generator{}
 
-func NewGenerator(clnt client.Client) (*Generator, error) {
-	return &Generator{client: clnt}, nil
+func NewGenerator() (*Generator, error) {
+	return &Generator{}, nil
 }
 
 func (g *Generator) Generate(ctx context.Context, namespace string, name string, parameters componentoperatorruntimetypes.Unstructurable) ([]client.Object, error) {
@@ -51,9 +49,7 @@ func (g *Generator) Generate(ctx context.Context, namespace string, name string,
 		decryptionKeys = spec.Decryption.SecretRef.Data()
 	}
 
-	// note: url is actually not needed in the generator id, digest is enough to identify the content
-	id := url + "\n" + digest + "\n" + path + "\n" + decryptionProvider + "\n" + calculateDigest(decryptionKeys)
-	generator, err := GetGenerator(id, url, path, g.client, decryptionProvider, decryptionKeys)
+	generator, err := GetGenerator(url, path, digest, decryptionProvider, decryptionKeys)
 	if err != nil {
 		return nil, err
 	}

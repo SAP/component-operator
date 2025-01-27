@@ -33,11 +33,16 @@ import (
 // TODO: write some logs (e.g. in the hooks)
 // TODO: use source digest instead of (resp. in parallel to) source revision
 
-const Name = "component-operator.cs.sap.com"
+const (
+	Name                    = "component-operator.cs.sap.com"
+	MaxConcurrentReconciles = 5
+)
 
 type Options struct {
-	Name       string
-	FlagPrefix string
+	Name                    string
+	DefaultServiceAccount   string
+	MaxConcurrentReconciles int
+	FlagPrefix              string
 }
 
 type Operator struct {
@@ -79,6 +84,9 @@ func NewWithOptions(options Options) *Operator {
 	if operator.options.Name == "" {
 		operator.options.Name = Name
 	}
+	if operator.options.MaxConcurrentReconciles == 0 {
+		operator.options.MaxConcurrentReconciles = MaxConcurrentReconciles
+	}
 	return operator
 }
 
@@ -94,6 +102,8 @@ func (o *Operator) InitScheme(scheme *runtime.Scheme) {
 }
 
 func (o *Operator) InitFlags(flagset *flag.FlagSet) {
+	flagset.StringVar(&o.options.DefaultServiceAccount, "default-service-account", o.options.DefaultServiceAccount, "Default service account name")
+	flagset.IntVar(&o.options.MaxConcurrentReconciles, "max-concurrent-reconciles", o.options.MaxConcurrentReconciles, "Maximum number of concurrent reconciler workers")
 }
 
 func (o *Operator) ValidateFlags() error {
@@ -106,7 +116,7 @@ func (o *Operator) GetUncacheableTypes() []client.Object {
 
 func (o *Operator) Setup(mgr ctrl.Manager) error {
 	blder := ctrl.NewControllerManagedBy(mgr).
-		WithOptions(controller.Options{MaxConcurrentReconciles: 5})
+		WithOptions(controller.Options{MaxConcurrentReconciles: o.options.MaxConcurrentReconciles})
 
 	if err := setupCache(mgr, blder); err != nil {
 		return errors.Wrap(err, "error registering component resource")
@@ -115,7 +125,7 @@ func (o *Operator) Setup(mgr ctrl.Manager) error {
 		return errors.Wrap(err, "error registering flux resources")
 	}
 
-	resourceGenerator, err := generator.NewGenerator(mgr.GetClient())
+	resourceGenerator, err := generator.NewGenerator()
 	if err != nil {
 		return errors.Wrap(err, "error initializing resource generator")
 	}
@@ -124,7 +134,8 @@ func (o *Operator) Setup(mgr ctrl.Manager) error {
 		o.options.Name,
 		resourceGenerator,
 		component.ReconcilerOptions{
-			UpdatePolicy: ref(reconciler.UpdatePolicySsaOverride),
+			DefaultServiceAccount: &o.options.DefaultServiceAccount,
+			UpdatePolicy:          ref(reconciler.UpdatePolicySsaOverride),
 		},
 	).WithPostReadHook(
 		makeFuncPostRead(),

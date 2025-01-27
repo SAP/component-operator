@@ -19,8 +19,6 @@ import (
 	"sync"
 	"time"
 
-	"sigs.k8s.io/controller-runtime/pkg/client"
-
 	"github.com/sap/component-operator-runtime/pkg/manifests"
 	"github.com/sap/component-operator-runtime/pkg/manifests/helm"
 	"github.com/sap/component-operator-runtime/pkg/manifests/kustomize"
@@ -56,10 +54,12 @@ func init() {
 	}()
 }
 
-// note: id must uniquely identify the decrypted content downloaded from url/path
-func GetGenerator(id string, url string, path string, clnt client.Client, decryptionProvider string, decryptionKeys map[string][]byte) (manifests.Generator, error) {
+func GetGenerator(url string, path string, digest string, decryptionProvider string, decryptionKeys map[string][]byte) (manifests.Generator, error) {
 	mutex.Lock()
 	defer mutex.Unlock()
+
+	// note: url is actually not needed in the generator id, digest is enough to identify the content
+	id := url + "\n" + digest + "\n" + path + "\n" + decryptionProvider + "\n" + calculateDigest(decryptionKeys)
 
 	if item, ok := items[id]; ok {
 		item.ValidUntil = time.Now().Add(validity)
@@ -103,12 +103,12 @@ func GetGenerator(id string, url string, path string, clnt client.Client, decryp
 
 		var generator manifests.Generator
 		if _, err = fs.Stat(fsys, "Chart.yaml"); err == nil {
-			generator, err = helm.NewHelmGenerator(fsys, "", clnt)
+			generator, err = helm.NewHelmGenerator(fsys, "", nil)
 			if err != nil {
 				return nil, err
 			}
 		} else if errors.Is(err, fs.ErrNotExist) {
-			generator, err = kustomize.NewKustomizeGenerator(fsys, "", clnt, kustomize.KustomizeGeneratorOptions{})
+			generator, err = kustomize.NewKustomizeGenerator(fsys, "", nil, kustomize.KustomizeGeneratorOptions{})
 			if err != nil {
 				return nil, err
 			}
