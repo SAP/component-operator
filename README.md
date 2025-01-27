@@ -27,6 +27,7 @@ metadata:
 spec:
   namespace: target-ns
   name: target-name
+  serviceAccountName: some-sa
   kubeConfig:
     secretRef:
       name: kubeconfig
@@ -61,6 +62,10 @@ spec:
 ### Target namespace and name
 
 The optional fields `spec.namespace` and `spec.name` may be provided to customize the deployment namespace/name of the component (as defined by component-operator-runtime). If not set, the target namespace and name will equal `metadata.namespace` and `metadata.name` of the component.
+
+### Service account
+
+By default, the controller's own kubeconfig is used to construct local Kubernetes API clients used during the reconciliation of a `Component`. If `spec.serviceAccountName` is provided, then this service account (relative to the component's namespace) is used to impersonate the controller's kubeconfig. If `spec.serviceAccountName` is not set, but the command line flag `--default-service-account` is provided, then the service account specified there (also relative to the component's namespace) is used to impersonate the controller's kubeconfig.
 
 ### KubeConfig reference
 
