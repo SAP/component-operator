@@ -46,6 +46,21 @@ spec:
           spec:
             description: ComponentSpec defines the desired state of Component.
             properties:
+              additionalManagedTypes:
+                items:
+                  description: TypeInfo represents a Kubernetes type.
+                  properties:
+                    group:
+                      description: API group.
+                      type: string
+                    kind:
+                      description: API kind.
+                      type: string
+                  required:
+                  - group
+                  - kind
+                  type: object
+                type: array
               adoptionPolicy:
                 description: AdoptionPolicy defines how the reconciler reacts if a
                   dependent object exists but has no or a different owner.
@@ -334,7 +349,8 @@ spec:
                     managedTypes:
                       description: Managed types.
                       items:
-                        description: TypeInfo represents a Kubernetes type.
+                        description: TypeVersionInfo represents a Kubernetes type
+                          version.
                         properties:
                           group:
                             description: API group.
