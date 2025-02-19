@@ -190,6 +190,13 @@ The delete policy can be overridden on a per-object level by setting annotation 
 
 By default, if the namespace of a dependent object does not exist, it will be created. This behaviour can be tweaked by setting the attribute `spec.missingNamespacesPolicy`. Allowed values are `Create` (default if not specified) and `DoNotCreate`.
 
+### Add additional managed types
+
+By its nature, component-operator tries to handle extension types (such as CRDs or API groups added through APIService federation), and instances of these types, in a smart way.
+That is, if the component contains extension types, and also instances of these types, it tries to process things in the right order; that means, during apply the instances will be applied as late as possible (to ensure that controllers and webhooks are up); and during delete, the instances will be deleted as early as possible (to ensure that controllers and webhooks are still there). Furthermore, during deletion, foreign instances (that is, instances of these types that are not part of the component) block the deletion of the whole component.
+Sometimes, components are implicitly adding extension types to the cluster; in the sense that the extension types are not explicitly part of the manifests, but added in the dark through controllers, once running. A typical example are crossplane providers.
+On the component resource, such additional types can be declared by setting the attribute `spec.additionalManagedFields`.
+
 ### Dependencies
 
 As with flux kustomizations, it is possible to declare dependencies between `Component` objects, that means, to list other components,
