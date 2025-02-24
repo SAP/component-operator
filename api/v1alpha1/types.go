@@ -260,6 +260,17 @@ func (c *Component) GetStatus() *component.Status {
 	return &c.Status.Status
 }
 
+// Provide event metadata
+// note: by implementing this method, component-operator-runtime will attach the returned annotations
+// when calling EventRecorder.AnnotatedEventf(); also note that this controller wraps the standard
+// event recorder with the flux notification recorder; this one expects annotation keys to be prefixed
+// with the API group of the involved object ...
+func (c *Component) GetEventAnnotations() map[string]string {
+	return map[string]string{
+		fmt.Sprintf("%s/revision", GroupVersion.Group): c.Status.LastAttemptedRevision,
+	}
+}
+
 func equal[T comparable](x *T, y *T) bool {
 	return x == nil && y == nil || x != nil && y != nil && *x == *y
 }

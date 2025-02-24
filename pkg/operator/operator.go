@@ -16,10 +16,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 
+	fluxevents "github.com/fluxcd/pkg/runtime/events"
 	fluxsourcev1 "github.com/fluxcd/source-controller/api/v1"
 	fluxsourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
 	fluxsourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 
+	"github.com/sap/component-operator-runtime/pkg/cluster"
 	"github.com/sap/component-operator-runtime/pkg/component"
 	"github.com/sap/component-operator-runtime/pkg/operator"
 	"github.com/sap/component-operator-runtime/pkg/reconciler"
@@ -42,6 +44,7 @@ type Options struct {
 	Name                    string
 	DefaultServiceAccount   string
 	MaxConcurrentReconciles int
+	EventsAddress           string
 	FlagPrefix              string
 }
 
@@ -104,6 +107,7 @@ func (o *Operator) InitScheme(scheme *runtime.Scheme) {
 func (o *Operator) InitFlags(flagset *flag.FlagSet) {
 	flagset.StringVar(&o.options.DefaultServiceAccount, "default-service-account", o.options.DefaultServiceAccount, "Default service account name")
 	flagset.IntVar(&o.options.MaxConcurrentReconciles, "max-concurrent-reconciles", o.options.MaxConcurrentReconciles, "Maximum number of concurrent reconciler workers")
+	flagset.StringVar(&o.options.EventsAddress, "events-address", o.options.EventsAddress, "Address of the events receiver")
 }
 
 func (o *Operator) ValidateFlags() error {
@@ -130,12 +134,24 @@ func (o *Operator) Setup(mgr ctrl.Manager) error {
 		return errors.Wrap(err, "error initializing resource generator")
 	}
 
+	newClient := func(clnt cluster.Client) (cluster.Client, error) {
+		if o.options.EventsAddress == "" {
+			return clnt, nil
+		}
+		eventRecorder, err := fluxevents.NewRecorderForScheme(clnt.Scheme(), clnt.EventRecorder(), mgr.GetLogger(), o.options.EventsAddress, o.options.Name)
+		if err != nil {
+			return nil, errors.Wrap(err, "error initializing wrapping event recorder")
+		}
+		return cluster.NewClient(clnt, clnt.DiscoveryClient(), eventRecorder, clnt.Config(), clnt.HttpClient()), nil
+	}
+
 	reconciler := component.NewReconciler[*operatorv1alpha1.Component](
 		o.options.Name,
 		resourceGenerator,
 		component.ReconcilerOptions{
 			DefaultServiceAccount: &o.options.DefaultServiceAccount,
 			UpdatePolicy:          ref(reconciler.UpdatePolicySsaOverride),
+			NewClient:             newClient,
 		},
 	).WithPostReadHook(
 		makeFuncPostRead(),
