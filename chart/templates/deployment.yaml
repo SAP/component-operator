@@ -81,6 +81,15 @@ spec:
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         args:
         - --leader-elect
+        {{- with .Values.options.defaultServiceAccount }}
+        - --default-service-account={{ . }}
+        {{- end }}
+        {{- with .Values.options.maxConcurrentReconciles }}
+        - --max-concurrent-reconciles={{ . }}
+        {{- end }}
+        {{- with .Values.options.eventsAddress }}
+        - --events-address={{ . }}
+        {{- end }}
         ports:
         - name: metrics
           containerPort: 8080
