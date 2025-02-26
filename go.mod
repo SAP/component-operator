@@ -5,12 +5,13 @@ go 1.24.0
 require (
 	filippo.io/age v1.2.1
 	github.com/drone/envsubst v1.0.3
+	github.com/fluxcd/pkg/apis/event v0.16.0
 	github.com/fluxcd/pkg/runtime v0.53.1
 	github.com/fluxcd/source-controller/api v1.4.1
 	github.com/getsops/sops/v3 v3.9.2
 	github.com/go-logr/logr v1.4.2
 	github.com/pkg/errors v0.9.1
-	github.com/sap/component-operator-runtime v0.3.77
+	github.com/sap/component-operator-runtime v0.3.78
 	github.com/sap/go-generics v0.2.28
 	k8s.io/apiextensions-apiserver v0.32.2
 	k8s.io/apimachinery v0.32.2
@@ -85,7 +86,6 @@ require (
 	github.com/fatih/color v1.18.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/fluxcd/pkg/apis/acl v0.6.0 // indirect
-	github.com/fluxcd/pkg/apis/event v0.16.0 // indirect
 	github.com/fluxcd/pkg/apis/meta v1.10.0 // indirect
 	github.com/fsnotify/fsnotify v1.8.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.7.0 // indirect
