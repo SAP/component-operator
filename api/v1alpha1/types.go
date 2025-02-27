@@ -13,6 +13,8 @@ import (
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	apitypes "k8s.io/apimachinery/pkg/types"
 
+	fluxeventv1beta1 "github.com/fluxcd/pkg/apis/event/v1beta1"
+
 	"github.com/sap/component-operator-runtime/pkg/component"
 	componentoperatorruntimetypes "github.com/sap/component-operator-runtime/pkg/types"
 )
@@ -265,10 +267,16 @@ func (c *Component) GetStatus() *component.Status {
 // when calling EventRecorder.AnnotatedEventf(); also note that this controller wraps the standard
 // event recorder with the flux notification recorder; this one expects annotation keys to be prefixed
 // with the API group of the involved object ...
-func (c *Component) GetEventAnnotations() map[string]string {
-	return map[string]string{
-		fmt.Sprintf("%s/revision", GroupVersion.Group): c.Status.LastAttemptedRevision,
+func (c *Component) GetEventAnnotations(previousState component.State, componentDigest string) map[string]string {
+	annotations := make(map[string]string)
+	annotations[fmt.Sprintf("%s/revision", GroupVersion.Group)] = c.Status.LastAttemptedRevision
+	if previousState != component.StateProcessing || c.Status.State != component.StateReady {
+		annotations[fmt.Sprintf("%s/%s", GroupVersion.Group, fluxeventv1beta1.MetaCommitStatusKey)] = fluxeventv1beta1.MetaCommitStatusUpdateValue
 	}
+	if componentDigest != "" {
+		annotations[fmt.Sprintf("%s/%s", GroupVersion.Group, fluxeventv1beta1.MetaTokenKey)] = componentDigest
+	}
+	return annotations
 }
 
 func equal[T comparable](x *T, y *T) bool {
