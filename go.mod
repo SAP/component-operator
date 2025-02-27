@@ -8,7 +8,7 @@ require (
 	github.com/fluxcd/pkg/apis/event v0.16.0
 	github.com/fluxcd/pkg/runtime v0.53.1
 	github.com/fluxcd/source-controller/api v1.4.1
-	github.com/getsops/sops/v3 v3.9.2
+	github.com/getsops/sops/v3 v3.9.4
 	github.com/go-logr/logr v1.4.2
 	github.com/pkg/errors v0.9.1
 	github.com/sap/component-operator-runtime v0.3.78
@@ -19,7 +19,7 @@ require (
 	k8s.io/code-generator v0.32.2
 	k8s.io/kube-aggregator v0.32.2
 	sigs.k8s.io/controller-runtime v0.20.2
-	sigs.k8s.io/controller-runtime/tools/setup-envtest v0.0.0-20241206182001-aea2e32a9365
+	sigs.k8s.io/controller-runtime/tools/setup-envtest 9d8d219840a4
 	sigs.k8s.io/controller-tools v0.16.5
 	sigs.k8s.io/yaml v1.4.0
 )
