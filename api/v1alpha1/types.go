@@ -270,11 +270,9 @@ func (c *Component) GetStatus() *component.Status {
 func (c *Component) GetEventAnnotations(previousState component.State, componentDigest string) map[string]string {
 	annotations := make(map[string]string)
 	annotations[fmt.Sprintf("%s/revision", GroupVersion.Group)] = c.Status.LastAttemptedRevision
+	annotations[fmt.Sprintf("%s/%s", GroupVersion.Group, fluxeventv1beta1.MetaTokenKey)] = fmt.Sprintf("%s:%s", c.UID, componentDigest)
 	if previousState != component.StateProcessing || c.Status.State != component.StateReady {
 		annotations[fmt.Sprintf("%s/%s", GroupVersion.Group, fluxeventv1beta1.MetaCommitStatusKey)] = fluxeventv1beta1.MetaCommitStatusUpdateValue
-	}
-	if componentDigest != "" {
-		annotations[fmt.Sprintf("%s/%s", GroupVersion.Group, fluxeventv1beta1.MetaTokenKey)] = componentDigest
 	}
 	return annotations
 }
