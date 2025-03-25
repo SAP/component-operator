@@ -38,8 +38,8 @@ func (g *Generator) Generate(ctx context.Context, namespace string, name string,
 
 	spec := parameters.(*operatorv1alpha1.ComponentSpec)
 
-	url := spec.SourceRef.Url()
-	digest := spec.SourceRef.Digest()
+	url := spec.SourceRef.Artifact().Url
+	digest := spec.SourceRef.Artifact().Digest
 	path := spec.Path
 
 	var decryptionProvider string

@@ -58,7 +58,7 @@ func GetGenerator(url string, path string, digest string, decryptionProvider str
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	// note: url is actually not needed in the generator id, digest is enough to identify the content
+	// note: url is actually not needed in the generator id, digest and path is enough to identify the content
 	id := url + "\n" + digest + "\n" + path + "\n" + decryptionProvider + "\n" + calculateDigest(decryptionKeys)
 
 	if item, ok := items[id]; ok {

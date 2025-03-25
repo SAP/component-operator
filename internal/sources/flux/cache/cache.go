@@ -3,7 +3,7 @@ SPDX-FileCopyrightText: 2024 SAP SE or an SAP affiliate company and component-op
 SPDX-License-Identifier: Apache-2.0
 */
 
-package flux
+package cache
 
 import (
 	"context"
@@ -25,12 +25,8 @@ import (
 
 	operatorv1alpha1 "github.com/sap/component-operator/api/v1alpha1"
 	"github.com/sap/component-operator/internal/object"
+	"github.com/sap/component-operator/internal/sources/flux/types"
 )
-
-type Source interface {
-	object.Object
-	fluxsourcev1.Source
-}
 
 const (
 	gitRepositoryIndexKey string = ".metadata.flux.gitRepository"
@@ -120,7 +116,7 @@ func (h *sourceHandler) Create(ctx context.Context, e event.TypedCreateEvent[cli
 }
 
 func (h *sourceHandler) Update(ctx context.Context, e event.TypedUpdateEvent[client.Object], q workqueue.TypedRateLimitingInterface[reconcile.Request]) {
-	newSource := e.ObjectNew.(Source)
+	newSource := e.ObjectNew.(types.Source)
 
 	if !object.IsReady(newSource) {
 		return
