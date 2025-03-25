@@ -3,7 +3,7 @@ SPDX-FileCopyrightText: 2024 SAP SE or an SAP affiliate company and component-op
 SPDX-License-Identifier: Apache-2.0
 */
 
-package httprepository
+package checker
 
 import (
 	"context"
@@ -17,6 +17,7 @@ import (
 	"github.com/sap/component-operator-runtime/pkg/component"
 
 	operatorv1alpha1 "github.com/sap/component-operator/api/v1alpha1"
+	"github.com/sap/component-operator/internal/sources/httprepository/util"
 )
 
 type Checker struct {
@@ -56,7 +57,7 @@ func (c *Checker) Start(ctx context.Context) error {
 				url := component.Spec.SourceRef.HttpRepository.Url
 				digestHeader := component.Spec.SourceRef.HttpRepository.DigestHeader
 				revisionHeader := component.Spec.SourceRef.HttpRepository.RevisionHeader
-				_, digest, revision, err := GetArtifact(url, digestHeader, revisionHeader)
+				_, digest, revision, err := util.GetArtifact(url, digestHeader, revisionHeader)
 				if err == nil {
 					if digest != component.Status.LastAttemptedDigest || revision != component.Status.LastAttemptedRevision {
 						c.reconciler.Trigger(component.Namespace, component.Name)

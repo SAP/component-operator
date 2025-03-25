@@ -28,8 +28,8 @@ import (
 
 	operatorv1alpha1 "github.com/sap/component-operator/api/v1alpha1"
 	"github.com/sap/component-operator/internal/generator"
-	"github.com/sap/component-operator/internal/sources/flux"
-	"github.com/sap/component-operator/internal/sources/httprepository"
+	flux "github.com/sap/component-operator/internal/sources/flux/cache"
+	httprepository "github.com/sap/component-operator/internal/sources/httprepository/checker"
 )
 
 // TODO: write some logs (e.g. in the hooks)
