@@ -31,6 +31,7 @@ type Item struct {
 	ValidUntil time.Time
 }
 
+// TODO: make configurable
 const validity = 60 * time.Minute
 
 var items map[string]*Item
@@ -124,6 +125,7 @@ func downloadArchive(url string, prefix string, dir string, decryptor decrypt.De
 	prefix = filepath.Clean(prefix)
 	// TODO: check that prefix is a relative path and does not contain ..
 
+	// TODO: use a local or even global file cache
 	resp, err := http.Get(url)
 	if err != nil {
 		return err
