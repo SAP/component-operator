@@ -6,12 +6,12 @@ require (
 	filippo.io/age v1.2.1
 	github.com/drone/envsubst v1.0.3
 	github.com/fluxcd/pkg/apis/event v0.16.0
-	github.com/fluxcd/pkg/runtime v0.53.1
-	github.com/fluxcd/source-controller/api v1.4.1
+	github.com/fluxcd/pkg/runtime v0.58.0
+	github.com/fluxcd/source-controller/api v1.5.0
 	github.com/getsops/sops/v3 v3.9.4
 	github.com/go-logr/logr v1.4.2
 	github.com/pkg/errors v0.9.1
-	github.com/sap/component-operator-runtime v0.3.83
+	github.com/sap/component-operator-runtime v0.3.84
 	github.com/sap/go-generics v0.2.30
 	k8s.io/apiextensions-apiserver v0.32.3
 	k8s.io/apimachinery v0.32.3
@@ -20,7 +20,7 @@ require (
 	k8s.io/kube-aggregator v0.32.3
 	sigs.k8s.io/controller-runtime v0.20.4
 	sigs.k8s.io/controller-runtime/tools/setup-envtest v0.0.0-20241206182001-aea2e32a9365
-	sigs.k8s.io/controller-tools v0.16.5
+	sigs.k8s.io/controller-tools v0.17.2
 	sigs.k8s.io/yaml v1.4.0
 )
 
@@ -171,7 +171,7 @@ require (
 	golang.org/x/crypto v0.36.0 // indirect
 	golang.org/x/mod v0.23.0 // indirect
 	golang.org/x/net v0.37.0 // indirect
-	golang.org/x/oauth2 v0.25.0 // indirect
+	golang.org/x/oauth2 v0.27.0 // indirect
 	golang.org/x/sync v0.12.0 // indirect
 	golang.org/x/sys v0.31.0 // indirect
 	golang.org/x/term v0.30.0 // indirect
