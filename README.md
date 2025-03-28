@@ -80,8 +80,11 @@ It is optional, the default is 10 minutes.
 The field `spec.retryInterval` defines the period, after which a component is re-reconciled if a retriable error occurs.
 Check the [component-operator-runtime documentation](https://sap.github.io/component-operator-runtime/docs/concepts/reconciler/#tuning-the-retry-behavior) for more details about retriable errors. This field is optional; if unset the retry interval equals the effective requeue interval.
 
-Finally, the field `spec.timeout` defines how long dependent objects are expected to take to become ready. If not all depenents are ready, then the component state is `Processing` until the timeout has elapsed; afterwards, the component state flips to `Error`. Note that the operator still tries to reconcile the dependent objects in that case, just as before. The timeout restarts counting down whenever the component itself, or the rendered dependent manifests change.
+Finally, the field `spec.timeout` defines how long dependent objects are expected to take to become ready. If not all depenents are ready, then the component state is `Processing` until the timeout has elapsed; afterwards, the component state flips to `Error`. Note that the operator still tries to reconcile the dependent objects in that case, just as before. The timeout restarts counting down whenever the component itself, or any of the contained references changes.
 The timeout field is optional; if unset, it is defaulted with the effective requeue interval.
+
+By default, the operator always reconciles towards the latest state which is defined by the component, and its referenced objects.
+By setting the field `spec.sticky` to `true`, this behaviour changes: whenever the revision of the used source reference changes, the operator tries to reconcile this exact source revision until the component reaches a ready state, or the component's timeout is hit. If any source revisions are published within this period, then the latest one will be reconciled when the current one is done (either because of ready state or timeout), and all intermediate revisions are skipped.
 
 ### Source reference
 
