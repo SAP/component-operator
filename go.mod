@@ -11,7 +11,7 @@ require (
 	github.com/getsops/sops/v3 v3.9.4
 	github.com/go-logr/logr v1.4.2
 	github.com/pkg/errors v0.9.1
-	github.com/sap/component-operator-runtime v0.3.85
+	github.com/sap/component-operator-runtime v0.3.86
 	github.com/sap/go-generics v0.2.31
 	k8s.io/apiextensions-apiserver v0.32.3
 	k8s.io/apimachinery v0.33.0-beta.0
