@@ -364,6 +364,8 @@ github.com/ryanuber/go-glob v1.0.0 h1:iQh3xXAumdQ+4Ufa5b25cRpC5TYKlno6hsv6Cb3pkB
 github.com/ryanuber/go-glob v1.0.0/go.mod h1:807d1WSdnB0XRJzKNil9Om6lcp/3a0v4qIHxIXzX/Yc=
 github.com/sap/component-operator-runtime v0.3.85 h1:9kJ5YmJB4vGJuggZ9lf1lRnRpiabqKEroCyMlromFXA=
 github.com/sap/component-operator-runtime v0.3.85/go.mod h1:qjzamZ9MtE3+Tupi5PSZS/8x5uPaDNbznsdcomFkc7k=
+github.com/sap/component-operator-runtime v0.3.86 h1:F5OM36oAQ79CRg/Z5Yd83RG2lcjVB/qlI1Jyc3+ERL4=
+github.com/sap/component-operator-runtime v0.3.86/go.mod h1:YFjOS7D5qnyjzP8tmkhwTKOw7lwnQW9j/mEFyZpDiAI=
 github.com/sap/go-generics v0.2.31 h1:AM1+V5ytqn6IN16JdjdSIsF3AckiplmQnXyBzECjy2w=
 github.com/sap/go-generics v0.2.31/go.mod h1:RahWFdEaztludxH9GOvH8N5kJJkpxTfn93C/o1gXcHE=
 github.com/sergi/go-diff v1.2.0 h1:XU+rvMAioB0UC3q1MFrIQy4Vo5/4VsRDQQXHsEya6xQ=
