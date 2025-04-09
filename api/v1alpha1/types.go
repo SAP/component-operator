@@ -83,9 +83,7 @@ func (r *SourceReference) Load(ctx context.Context, clnt client.Client, componen
 	spec := &component.Spec
 	status := &component.Status
 
-	if spec.Sticky && isComponentProcessing(component) {
-		// note: status.SourceRef is not nil if at least one reconcile iteration was completed,
-		// and this is given if IsProcessing() returns true
+	if spec.Sticky && isComponentProcessing(component) && status.SourceRef != nil {
 		r.artifact = status.SourceRef.Artifact
 		r.digest = status.SourceRef.Digest
 		r.loaded = true
