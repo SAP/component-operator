@@ -11,15 +11,15 @@ require (
 	github.com/getsops/sops/v3 v3.10.1
 	github.com/go-logr/logr v1.4.2
 	github.com/pkg/errors v0.9.1
-	github.com/sap/component-operator-runtime v0.3.86
-	github.com/sap/go-generics v0.2.31
+	github.com/sap/component-operator-runtime v0.3.87
+	github.com/sap/go-generics v0.2.32
 	k8s.io/apiextensions-apiserver v0.32.3
 	k8s.io/apimachinery v0.33.0-beta.0
 	k8s.io/client-go v0.32.3
 	k8s.io/code-generator v0.32.3
 	k8s.io/kube-aggregator v0.32.3
 	sigs.k8s.io/controller-runtime v0.20.4
-	sigs.k8s.io/controller-runtime/tools/setup-envtest v0.0.0-20250331202436-76067279145e
+	sigs.k8s.io/controller-runtime/tools/setup-envtest v0.0.0-20250407161039-6ad5c1dd4418
 	sigs.k8s.io/controller-tools v0.17.3
 	sigs.k8s.io/yaml v1.4.0
 )
@@ -125,7 +125,7 @@ require (
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
-	github.com/klauspost/compress v1.17.11 // indirect
+	github.com/klauspost/compress v1.18.0 // indirect
 	github.com/kylelemons/godebug v1.1.0 // indirect
 	github.com/lib/pq v1.10.9 // indirect
 	github.com/mailru/easyjson v0.9.0 // indirect
@@ -142,7 +142,7 @@ require (
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c // indirect
 	github.com/planetscale/vtprotobuf v0.6.1-0.20240319094008-0393e58bdf10 // indirect
-	github.com/prometheus/client_golang v1.21.1 // indirect
+	github.com/prometheus/client_golang v1.22.0 // indirect
 	github.com/prometheus/client_model v0.6.1 // indirect
 	github.com/prometheus/common v0.62.0 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
