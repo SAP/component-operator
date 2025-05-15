@@ -171,6 +171,8 @@ spec:
                       type: object
                     type: array
                 type: object
+              reapplyInterval:
+                type: string
               requeueInterval:
                 pattern: ^([0-9]+(\.[0-9]+)?(ns|us|µs|ms|s|m|h))+$
                 type: string

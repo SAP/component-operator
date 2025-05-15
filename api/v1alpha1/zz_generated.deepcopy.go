@@ -100,6 +100,7 @@ func (in *ComponentSpec) DeepCopyInto(out *ComponentSpec) {
 	in.TimeoutSpec.DeepCopyInto(&out.TimeoutSpec)
 	out.PolicySpec = in.PolicySpec
 	in.TypeSpec.DeepCopyInto(&out.TypeSpec)
+	in.ReapplySpec.DeepCopyInto(&out.ReapplySpec)
 	in.SourceRef.DeepCopyInto(&out.SourceRef)
 	if in.Values != nil {
 		in, out := &in.Values, &out.Values

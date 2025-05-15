@@ -40,6 +40,7 @@ type ComponentSpec struct {
 	component.TimeoutSpec       `json:",inline"`
 	component.PolicySpec        `json:",inline"`
 	component.TypeSpec          `json:",inline"`
+	component.ReapplySpec       `json:",inline"`
 	// +required
 	SourceRef    SourceReference                `json:"sourceRef"`
 	Digest       string                         `json:"digest,omitempty"`
