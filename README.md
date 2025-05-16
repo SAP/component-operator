@@ -169,7 +169,7 @@ It can happen that a dependent object exists in the cluster already, but is not 
 - `Never`:  always fail if an object already exists (not owned by the current component of course)
 - `Always`: always adopt existing objects.
 
-The adoption policy can be overridden on a per-object level by setting annotation `component-operator.cs.sap.com/adoption-policy`.
+The adoption policy can be overridden on a per-object level by setting the annotation `component-operator.cs.sap.com/adoption-policy`.
 
 ### Update policy
 
@@ -179,7 +179,7 @@ It is possible to tweak how component-operator performs updates of dependent obj
 - `SsaMerge`: use a server-side-apply PATCH request to update the object; this corresponds to `kubectl apply --server-side --force-conflicts`
 - `SsaOverride` (which is the default behaviour if the update policy is not specified): same as `SsaMerge` and, in addition, claim all existing fields that have a field owner starting with prefix `kubectl` or `helm`; this reverts changes done by these field managers, respectively drops affected fields if not specified by the submitted intent and not owned by somebody else.
 
-The update policy can be overridden on a per-object level by setting annotation `component-operator.cs.sap.com/update-policy`.
+The update policy can be overridden on a per-object level by setting the annotation `component-operator.cs.sap.com/update-policy`.
 
 ### Delete policy
 
@@ -187,7 +187,7 @@ It is possible to tweak what happens with dependents objects when the owning com
 By setting `spec.deletePolicy` to `Orphan`, dependent objects will not be deleted in that case, but just left around in the cluster.
 Note that this affects only the case when the component is deleted. If a depdendent object becomes obsolete because a new revision
 of the component manifests does no longer contain it, it will still be removed from the cluster.
-The delete policy can be overridden on a per-object level by setting annotation `component-operator.cs.sap.com/delete-policy`.
+The delete policy can be overridden on a per-object level by setting the annotation `component-operator.cs.sap.com/delete-policy`.
 
 ### Auto-create missing namespaces
 
@@ -199,6 +199,15 @@ By its nature, component-operator tries to handle extension types (such as CRDs 
 That is, if the component contains extension types, and also instances of these types, it tries to process things in the right order; that means, during apply the instances will be applied as late as possible (to ensure that controllers and webhooks are up); and during delete, the instances will be deleted as early as possible (to ensure that controllers and webhooks are still there). Furthermore, during deletion, foreign instances (that is, instances of these types that are not part of the component) block the deletion of the whole component.
 Sometimes, components are implicitly adding extension types to the cluster; in the sense that the extension types are not explicitly part of the manifests, but added in the dark through controllers, once running. A typical example are crossplane providers.
 On the component resource, such additional types can be declared by setting the attribute `spec.additionalManagedTypes`.
+
+### Reapply interval
+
+By default, the operator reapplies dependent objects to the Kubernetes API every 60 minutes (even if they seem to be in sync),
+in order to correct potential changes that may have happenend to the object, for example due to manual changes.
+This interval can be tuned by setting `spec.reapplyInterval`. Note that the interval should be greater than the effective requeue interval (see above).
+Otherwise, the reapply might happen only at the frequency defined by the requeue interval. The reapply interval can be overridden on a per-object
+level by setting the annotation `component-operator.cs.sap.com/reapply-interval`.
+
 
 ### Dependencies
 
