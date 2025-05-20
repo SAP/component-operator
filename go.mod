@@ -11,7 +11,7 @@ require (
 	github.com/getsops/sops/v3 v3.10.2
 	github.com/go-logr/logr v1.4.2
 	github.com/pkg/errors v0.9.1
-	github.com/sap/component-operator-runtime v0.3.96
+	github.com/sap/component-operator-runtime v0.3.97
 	github.com/sap/go-generics v0.2.32
 	k8s.io/apiextensions-apiserver v0.33.1
 	k8s.io/apimachinery v0.33.1
@@ -19,7 +19,7 @@ require (
 	k8s.io/code-generator v0.33.1
 	k8s.io/kube-aggregator v0.33.1
 	sigs.k8s.io/controller-runtime v0.20.4
-	sigs.k8s.io/controller-runtime/tools/setup-envtest v0.0.0-20250514162319-85ee7a9efa4b
+	sigs.k8s.io/controller-runtime/tools/setup-envtest v0.0.0-20250520071515-71f7db556ca5
 	sigs.k8s.io/controller-tools v0.18.0
 	sigs.k8s.io/yaml v1.4.0
 )

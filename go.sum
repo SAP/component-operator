@@ -365,6 +365,8 @@ github.com/ryanuber/go-glob v1.0.0 h1:iQh3xXAumdQ+4Ufa5b25cRpC5TYKlno6hsv6Cb3pkB
 github.com/ryanuber/go-glob v1.0.0/go.mod h1:807d1WSdnB0XRJzKNil9Om6lcp/3a0v4qIHxIXzX/Yc=
 github.com/sap/component-operator-runtime v0.3.96 h1:akedIZ2z7n6zGBixbC1qiAoY6LUfL6+a9pNmiHtkJA8=
 github.com/sap/component-operator-runtime v0.3.96/go.mod h1:LQyzQUPXBzkSu3JrIigdRiXjoQNfQEeHFDTSUyeXVnY=
+github.com/sap/component-operator-runtime v0.3.97 h1:MMHlBVjaUigyJ5fbl/vKVI8EBW6mX2XfALwbTtsYpAI=
+github.com/sap/component-operator-runtime v0.3.97/go.mod h1:eGZ6+PyGhL+9bTHIepFC7aH/CQGbmrJlv/WAoe5C+kM=
 github.com/sap/go-generics v0.2.32 h1:ip5J8BFUWxPJvtEdsjK9CrHgsGeqLtA3nYmIBOMtgJE=
 github.com/sap/go-generics v0.2.32/go.mod h1:sp7WNwGuu8dapfhzJIzugANpSq8D3H/YClbCl8fbPgQ=
 github.com/sergi/go-diff v1.2.0 h1:XU+rvMAioB0UC3q1MFrIQy4Vo5/4VsRDQQXHsEya6xQ=
@@ -541,6 +543,7 @@ sigs.k8s.io/controller-runtime v0.20.4 h1:X3c+Odnxz+iPTRobG4tp092+CvBU9UK0t/bRf+
 sigs.k8s.io/controller-runtime v0.20.4/go.mod h1:xg2XB0K5ShQzAgsoujxuKN4LNXR2LfwwHsPj7Iaw+XY=
 sigs.k8s.io/controller-runtime/tools/setup-envtest v0.0.0-20250514162319-85ee7a9efa4b h1:XhWcJ1uA5bmrca1B7L0LG5QNKZaQAkBdCjfT86f1wqE=
 sigs.k8s.io/controller-runtime/tools/setup-envtest v0.0.0-20250514162319-85ee7a9efa4b/go.mod h1:zxemiV1fQ3IJnXX0VeOb6qbHp2Wtv3s1w+gftNeHWTg=
+sigs.k8s.io/controller-runtime/tools/setup-envtest v0.0.0-20250520071515-71f7db556ca5/go.mod h1:zxemiV1fQ3IJnXX0VeOb6qbHp2Wtv3s1w+gftNeHWTg=
 sigs.k8s.io/controller-tools v0.18.0 h1:rGxGZCZTV2wJreeRgqVoWab/mfcumTMmSwKzoM9xrsE=
 sigs.k8s.io/controller-tools v0.18.0/go.mod h1:gLKoiGBriyNh+x1rWtUQnakUYEujErjXs9pf+x/8n1U=
 sigs.k8s.io/json v0.0.0-20241014173422-cfa47c3a1cc8 h1:gBQPwqORJ8d8/YNZWEjoZs7npUVDpVXUUOFfW6CgAqE=
