@@ -136,6 +136,9 @@ func (r *SourceReference) Load(ctx context.Context, clnt client.Client, componen
 			}
 
 			artifact := source.GetArtifact()
+			if artifact == nil {
+				return componentoperatorruntimetypes.NewRetriableError(fmt.Errorf("missing artifact on ready source"), ref(10*time.Second))
+			}
 
 			if artifact.URL == "" {
 				return componentoperatorruntimetypes.NewRetriableError(fmt.Errorf("source not ready (missing URL)"), ref(10*time.Second))
