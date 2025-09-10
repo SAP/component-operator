@@ -23,9 +23,9 @@ jobs:
 
     - name: Update generated artifacts
       run: |
+        go mod tidy
         make generate
         make manifests
-        go mod tidy
 
         git config user.name "${{ vars.WORKFLOW_USER_NAME }}"
         git config user.email "${{ vars.WORKFLOW_USER_EMAIL }}"
