@@ -19,7 +19,7 @@ require (
 	k8s.io/code-generator v0.34.1
 	k8s.io/kube-aggregator v0.34.1
 	sigs.k8s.io/controller-runtime v0.22.1
-	sigs.k8s.io/controller-runtime/tools/setup-envtest v0.0.0-20250909214956-585315243517
+	sigs.k8s.io/controller-runtime/tools/setup-envtest v0.0.0-20250911134410-157e6d282d89
 	sigs.k8s.io/controller-tools v0.19.0
 	sigs.k8s.io/yaml v1.6.0
 )
