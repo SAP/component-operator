@@ -6,7 +6,7 @@ require (
 	filippo.io/age v1.2.1
 	github.com/drone/envsubst v1.0.3
 	github.com/fluxcd/pkg/apis/event v0.19.0
-	github.com/fluxcd/pkg/runtime v0.84.0
+	github.com/fluxcd/pkg/runtime v0.85.0
 	github.com/fluxcd/source-controller/api v1.6.2
 	github.com/getsops/sops/v3 v3.10.2
 	github.com/go-logr/logr v1.4.3
