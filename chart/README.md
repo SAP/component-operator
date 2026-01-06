@@ -1,6 +1,6 @@
 # component-operator
 
-![Version: 0.1.36](https://img.shields.io/badge/Version-0.1.36-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.1.36](https://img.shields.io/badge/AppVersion-v0.1.36-informational?style=flat-square)
+![Version: 0.1.37](https://img.shields.io/badge/Version-0.1.37-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.1.37](https://img.shields.io/badge/AppVersion-v0.1.37-informational?style=flat-square)
 
 A Helm chart for https://github.com/sap/component-operator
 
@@ -30,6 +30,11 @@ A Helm chart for https://github.com/sap/component-operator
 | resources.limits.memory | string | `"128Mi"` | Memory limit |
 | resources.requests.cpu | string | `"100m"` | CPU request |
 | resources.requests.memory | string | `"128Mi"` | Memory request |
+| pdb.enabled | bool | `true` | Whether to create a PodDisruptionBudget for the webhook |
+| pdb.labels | object | `{}` | Labels to set on the PodDisruptionBudget |
+| pdb.annotations | object | `{}` | Annotations to set on the PodDisruptionBudget |
+| pdb.minAvailable | string | `"1"` (defaults to 1 if not specified) | Number of pods that are available after eviction as number or percentage (e.g. 50%) |
+| pdb.maxUnavailable | string | `""` | Number of pods that are unavailable after eviction as number or percentage (e.g: 50%); has higher precedence over `pdb.minAvailable` |
 | options | object | `{}` | Controller options |
 
 ----------------------------------------------
