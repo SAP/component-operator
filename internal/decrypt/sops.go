@@ -1,6 +1,6 @@
 /*
 SPDX-FileCopyrightText: 2020 The Flux authors
-SPDX-FileCopyrightText: 2024 SAP SE or an SAP affiliate company and component-operator contributors
+SPDX-FileCopyrightText: 2026 SAP SE or an SAP affiliate company and component-operator contributors
 SPDX-License-Identifier: Apache-2.0
 */
 
