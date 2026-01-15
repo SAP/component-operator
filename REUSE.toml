@@ -13,5 +13,5 @@ SPDX-License-Identifier = "Apache-2.0"
 [[annotations]]
 path = "internal/decrypt/sops.go"
 precedence = "aggregate"
-SPDX-FileCopyrightText = "2026 The Flux authors, 2026 SAP SE or an SAP affiliate company and component-operator contributors"
+SPDX-FileCopyrightText = "2020 The Flux authors, 2026 SAP SE or an SAP affiliate company and component-operator contributors"
 SPDX-License-Identifier = "Apache-2.0"
