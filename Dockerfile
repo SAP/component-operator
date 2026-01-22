@@ -25,7 +25,7 @@ RUN make envtest \
  && CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build -a -o manager main.go
 
 # Create final image
-FROM alpine:3.22
+FROM alpine:3.23
 WORKDIR /
 ENV GNUPGHOME=/tmp
 ENTRYPOINT ["/usr/local/bin/manager"]
