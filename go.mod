@@ -1,6 +1,6 @@
 module github.com/sap/component-operator
 
-go 1.25.5
+go 1.25.6
 
 require (
 	filippo.io/age v1.3.1
@@ -11,15 +11,15 @@ require (
 	github.com/getsops/sops/v3 v3.11.0
 	github.com/go-logr/logr v1.4.3
 	github.com/pkg/errors v0.9.1
-	github.com/sap/component-operator-runtime v0.3.126
-	github.com/sap/go-generics v0.2.47
+	github.com/sap/component-operator-runtime v0.3.129
+	github.com/sap/go-generics v0.2.50
 	k8s.io/apiextensions-apiserver v0.35.0
 	k8s.io/apimachinery v0.35.0
 	k8s.io/client-go v0.35.0
 	k8s.io/code-generator v0.35.0
 	k8s.io/kube-aggregator v0.35.0
 	sigs.k8s.io/controller-runtime v0.23.0
-	sigs.k8s.io/controller-runtime/tools/setup-envtest v0.0.0-20250911134410-157e6d282d89
+	sigs.k8s.io/controller-runtime/tools/setup-envtest v0.0.0-20260125161707-82cc073adb06
 	sigs.k8s.io/controller-tools v0.20.0
 	sigs.k8s.io/yaml v1.6.0
 )
