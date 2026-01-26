@@ -46,7 +46,7 @@ func NewComponentInformer(client versioned.Interface, namespace string, resyncPe
 // one. This reduces memory footprint and number of connections to the server.
 func NewFilteredComponentInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
 	return cache.NewSharedIndexInformer(
-		&cache.ListWatch{
+		cache.ToListWatcherWithWatchListSemantics(&cache.ListWatch{
 			ListFunc: func(options v1.ListOptions) (runtime.Object, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
@@ -71,7 +71,7 @@ func NewFilteredComponentInformer(client versioned.Interface, namespace string, 
 				}
 				return client.CoreV1alpha1().Components(namespace).Watch(ctx, options)
 			},
-		},
+		}, client),
 		&apiscorecssapcomv1alpha1.Component{},
 		resyncPeriod,
 		indexers,
