@@ -5,8 +5,8 @@ go 1.25.6
 require (
 	filippo.io/age v1.3.1
 	github.com/drone/envsubst v1.0.3
-	github.com/fluxcd/pkg/apis/event v0.22.0
-	github.com/fluxcd/pkg/runtime v0.96.0
+	github.com/fluxcd/pkg/apis/event v0.24.0
+	github.com/fluxcd/pkg/runtime v0.99.0
 	github.com/fluxcd/source-controller/api v1.7.4
 	github.com/getsops/sops/v3 v3.11.0
 	github.com/go-logr/logr v1.4.3
