@@ -7,6 +7,7 @@ package generator
 
 import (
 	"archive/tar"
+	"bytes"
 	"compress/gzip"
 	"errors"
 	"fmt"
@@ -15,7 +16,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
 	"sync"
 	"time"
 
@@ -73,7 +73,7 @@ func GetGenerator(url string, path string, digest string, decryptionProvider str
 		defer func() {
 			os.RemoveAll(tmpdir)
 		}()
-		var decryptor decrypt.Decryptor
+		var decryptor manifests.Decryptor
 		if len(decryptionKeys) > 0 {
 			switch decryptionProvider {
 			case "sops", "":
@@ -87,7 +87,7 @@ func GetGenerator(url string, path string, digest string, decryptionProvider str
 				return nil, fmt.Errorf("invalid decryption provider: %s", decryptionProvider)
 			}
 		}
-		if err := downloadArchive(url, path, tmpdir, decryptor); err != nil {
+		if err := downloadArchive(url, tmpdir); err != nil {
 			return nil, err
 		}
 		fullPath := filepath.Join(tmpdir, path)
@@ -100,16 +100,23 @@ func GetGenerator(url string, path string, digest string, decryptionProvider str
 		} else if !info.IsDir() {
 			return nil, fmt.Errorf("not a directory: %s", path)
 		}
-		fsys := os.DirFS(fullPath)
+		root, err := os.OpenRoot(tmpdir)
+		if err != nil {
+			return nil, err
+		}
+		defer root.Close()
 
 		var generator manifests.Generator
-		if _, err = fs.Stat(fsys, "Chart.yaml"); err == nil {
-			generator, err = helm.NewHelmGenerator(fsys, "", nil)
+		if _, err = root.Stat(filepath.Join(path, "Chart.yaml")); err == nil {
+			if err := decryptDirectory(root, path, decryptor); err != nil {
+				return nil, err
+			}
+			generator, err = helm.NewHelmGenerator(root.FS(), path, nil)
 			if err != nil {
 				return nil, err
 			}
 		} else if errors.Is(err, fs.ErrNotExist) {
-			generator, err = kustomize.NewKustomizeGenerator(fsys, "", nil, kustomize.KustomizeGeneratorOptions{})
+			generator, err = kustomize.NewKustomizeGenerator(root.FS(), path, nil, kustomize.KustomizeGeneratorOptions{Decryptor: decryptor})
 			if err != nil {
 				return nil, err
 			}
@@ -121,10 +128,7 @@ func GetGenerator(url string, path string, digest string, decryptionProvider str
 	}
 }
 
-func downloadArchive(url string, prefix string, dir string, decryptor decrypt.Decryptor) error {
-	prefix = filepath.Clean(prefix)
-	// TODO: check that prefix is a relative path and does not contain ..
-
+func downloadArchive(url string, targetPath string) error {
 	// TODO: use a local or even global file cache
 	resp, err := http.Get(url)
 	if err != nil {
@@ -157,10 +161,7 @@ func downloadArchive(url string, prefix string, dir string, decryptor decrypt.De
 			return fmt.Errorf("archive must not contain entries with absolute paths (%s)", header.Name)
 		}
 		path := filepath.Clean(header.Name)
-		if prefix != "." && !strings.HasPrefix(path, prefix) {
-			continue
-		}
-		fullPath := filepath.Join(dir, path)
+		fullPath := filepath.Join(targetPath, path)
 		switch header.Typeflag {
 		case tar.TypeDir:
 			if err := os.MkdirAll(fullPath, 0755); err != nil {
@@ -174,27 +175,44 @@ func downloadArchive(url string, prefix string, dir string, decryptor decrypt.De
 			if err != nil {
 				return err
 			}
-			if decryptor == nil {
-				if _, err := io.Copy(outFile, tarReader); err != nil {
-					return err
-				}
-			} else {
-				tarBytes, err := io.ReadAll(tarReader)
-				if err != nil {
-					return err
-				}
-				outBytes, err := decryptor.Decrypt(tarBytes, path)
-				if err != nil {
-					return err
-				}
-				if _, err := outFile.Write(outBytes); err != nil {
-					return err
-				}
+			if err := func() error {
+				defer outFile.Close()
+				_, err := io.Copy(outFile, tarReader)
+				return err
+			}(); err != nil {
+				return err
 			}
-			outFile.Close()
 		default:
 			return fmt.Errorf("encountered unknown tar type while downloading URL: %v in %s", header.Typeflag, path)
 		}
 	}
+
 	return nil
+}
+
+func decryptDirectory(root *os.Root, path string, decryptor manifests.Decryptor) error {
+	if decryptor == nil {
+		return nil
+	}
+	return fs.WalkDir(root.FS(), path, func(p string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if !d.IsDir() {
+			oldData, err := root.ReadFile(p)
+			if err != nil {
+				return err
+			}
+			newData, err := decryptor.Decrypt(oldData, p)
+			if err != nil {
+				return err
+			}
+			if !bytes.Equal(newData, oldData) {
+				if err := root.WriteFile(p, newData, 0); err != nil {
+					return err
+				}
+			}
+		}
+		return nil
+	})
 }
