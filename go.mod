@@ -1,12 +1,12 @@
 module github.com/sap/component-operator
 
-go 1.25.6
+go 1.26.0
 
 require (
 	filippo.io/age v1.3.1
 	github.com/drone/envsubst v1.0.3
-	github.com/fluxcd/pkg/apis/event v0.22.0
-	github.com/fluxcd/pkg/runtime v0.96.0
+	github.com/fluxcd/pkg/apis/event v0.24.0
+	github.com/fluxcd/pkg/runtime v0.100.1
 	github.com/fluxcd/source-controller/api v1.7.4
 	github.com/getsops/sops/v3 v3.11.0
 	github.com/go-logr/logr v1.4.3
@@ -207,8 +207,8 @@ require (
 	k8s.io/utils v0.0.0-20251002143259-bc988d571ff4 // indirect
 	sigs.k8s.io/cli-utils v0.37.2 // indirect
 	sigs.k8s.io/json v0.0.0-20250730193827-2d320260d730 // indirect
-	sigs.k8s.io/kustomize/api v0.21.0 // indirect
-	sigs.k8s.io/kustomize/kyaml v0.21.0 // indirect
+	sigs.k8s.io/kustomize/api v0.21.1 // indirect
+	sigs.k8s.io/kustomize/kyaml v0.21.1 // indirect
 	sigs.k8s.io/randfill v1.0.0 // indirect
 	sigs.k8s.io/structured-merge-diff/v6 v6.3.1 // indirect
 )
