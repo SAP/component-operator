@@ -34,6 +34,8 @@ import (
 	sopskeyservice "github.com/getsops/sops/v3/keyservice"
 	sopslogging "github.com/getsops/sops/v3/logging"
 	sopspgp "github.com/getsops/sops/v3/pgp"
+
+	"github.com/sap/component-operator-runtime/pkg/manifests"
 )
 
 // TODO: needs refactoring and testing
@@ -66,7 +68,7 @@ type SopsDecryptor struct {
 	keyServices   []sopskeyservice.KeyServiceClient
 }
 
-var _ Decryptor = &SopsDecryptor{}
+var _ manifests.Decryptor = &SopsDecryptor{}
 
 func NewSopsDecryptor(keys map[string][]byte) (_ *SopsDecryptor, err error) {
 	gnuPGHome, err := os.MkdirTemp("", "gpg-")
