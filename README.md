@@ -130,6 +130,7 @@ It should be noted that a revision or digest mismatch in the above sense never b
 
 By default, the manifests (as kustomization or helm chart) are assumed to be located at the root folder of the specified source artifact.
 A subfolder can be specified by setting `spec.path`.
+The content is interpreted as a helm chart if a `Chart.yaml` file exists in `spec.path`; otherwise, component-operator-runtime's `KustomizeGenerator` logic applies.
 
 ### Values and ValuesFrom
 
@@ -216,6 +217,26 @@ even cross-namespace, in `spec.dependencies`. Providing no namespace means that 
 namespace as the depending component. During creation or update, a component will remain in status `Pending` until all its dependencies
 are in a `Ready` state. Other than in the flux case, where dependencies are only evaluated during creation/update, but not for
 deletion, component dependencies are honored (in reverse order) also during deletion. That means, if a component which is listed as dependency of one or more other components, is being deleted, then it will go into a `DeletionPending` state, until all these depending components are gone.
+
+### Tuning kustomization sources
+
+The behavior of the `KustomizeGenerator` can be tweaked by creating files
+- `.component-config.yaml`
+- `.component-ignore`
+
+in the directory specified through `spec.path`.
+
+By default, the kustomization specified by `spec.path` cannot reference files or paths outside `spec.path`.
+By default, all `.yaml` or `.yml` files in `spec.path`, and its subdirectories, are subject to templating, unless a `kustomization.yaml` is explicitly proivded. It is possible to exclude certain files from templating through `.component-ignore`; this `.component-ignore` file uses the common `.gitignore` syntax. Note that excluded files are still visible to the `readFile` template function. Furthermore, additional file outside `spec.path` can be referenced if the according paths are declared in `.component-config.yaml` as:
+- `includedKustomizations: []string`: a list of directory paths relative to `spec.path`; targeted directories are treated as own components, rendered with the including component's parameters (values), and then supplied to kustomize at the identical path; recursive inclusions are possible, but must not lead to cycles (there is a circuit breaking logic that will fail the generator in case of cycles).
+- `includedFiles: []string`: a list of paths relative to `spec.path` (single files or directories); all referenced files (recursively in case a directory is specified) can be used with `readFile`.
+
+In addition, custom go templating delimiters can be defined through `.component-config.yaml`, such as:
+
+```yaml
+leftTemplateDelimiter: "{%"
+rightTemplateDelimiter: "%}
+```
 
 ## Requirements and Setup
 
