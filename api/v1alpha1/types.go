@@ -54,6 +54,8 @@ type ComponentSpec struct {
 	Dependencies []Dependency                   `json:"dependencies,omitempty"`
 }
 
+// +kubebuilder:validation:XValidation:rule="has(self.httpRepository) && !has(self.fluxGitRepository) && !has(self.fluxOciRepository) && !has(self.fluxBucket) && !has(self.fluxHelmChart) || !has(self.httpRepository) && has(self.fluxGitRepository) && !has(self.fluxOciRepository) && !has(self.fluxBucket) && !has(self.fluxHelmChart) || !has(self.httpRepository) && !has(self.fluxGitRepository) && has(self.fluxOciRepository) && !has(self.fluxBucket) && !has(self.fluxHelmChart) || !has(self.httpRepository) && !has(self.fluxGitRepository) && !has(self.fluxOciRepository) && has(self.fluxBucket) && !has(self.fluxHelmChart) || !has(self.httpRepository) && !has(self.fluxGitRepository) && !has(self.fluxOciRepository) && !has(self.fluxBucket) && has(self.fluxHelmChart)",message="Exactly one of 'httpRepository' or 'fluxGitRepository' or 'fluxOciRepository' or 'fluxBucket' or 'fluxHelmChart' must be provided"
+
 // SourceReference models the source of the templates used to render the dependent resources.
 // Exactly one of the options must be provided. Before accessing the Artifact() method,
 // the SourceReference must be loaded by calling Load().
