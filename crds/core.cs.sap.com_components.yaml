@@ -250,6 +250,20 @@ spec:
                         type: string
                     type: object
                 type: object
+                x-kubernetes-validations:
+                - message: Exactly one of 'httpRepository' or 'fluxGitRepository'
+                    or 'fluxOciRepository' or 'fluxBucket' or 'fluxHelmChart' must
+                    be provided
+                  rule: has(self.httpRepository) && !has(self.fluxGitRepository) &&
+                    !has(self.fluxOciRepository) && !has(self.fluxBucket) && !has(self.fluxHelmChart)
+                    || !has(self.httpRepository) && has(self.fluxGitRepository) &&
+                    !has(self.fluxOciRepository) && !has(self.fluxBucket) && !has(self.fluxHelmChart)
+                    || !has(self.httpRepository) && !has(self.fluxGitRepository) &&
+                    has(self.fluxOciRepository) && !has(self.fluxBucket) && !has(self.fluxHelmChart)
+                    || !has(self.httpRepository) && !has(self.fluxGitRepository) &&
+                    !has(self.fluxOciRepository) && has(self.fluxBucket) && !has(self.fluxHelmChart)
+                    || !has(self.httpRepository) && !has(self.fluxGitRepository) &&
+                    !has(self.fluxOciRepository) && !has(self.fluxBucket) && has(self.fluxHelmChart)
               sticky:
                 type: boolean
               timeout:
