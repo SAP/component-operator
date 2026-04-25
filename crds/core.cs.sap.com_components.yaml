@@ -18,6 +18,9 @@ spec:
     - jsonPath: .status.state
       name: State
       type: string
+    - jsonPath: .status.conditions[?(@.type=='Ready')].reason
+      name: Reason
+      type: string
     - jsonPath: .metadata.creationTimestamp
       name: Age
       type: date
@@ -312,6 +315,8 @@ spec:
                     || !has(self.httpRepository) && !has(self.fluxGitRepository) &&
                     !has(self.fluxOciRepository) && !has(self.fluxBucket) && has(self.fluxHelmChart)
               sticky:
+                type: boolean
+              suspend:
                 type: boolean
               timeout:
                 pattern: ^([0-9]+(\.[0-9]+)?(ns|us|µs|ms|s|m|h))+$

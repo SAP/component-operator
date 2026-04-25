@@ -96,6 +96,7 @@ func (in *ComponentSpec) DeepCopyInto(out *ComponentSpec) {
 	out.PlacementSpec = in.PlacementSpec
 	in.ClientSpec.DeepCopyInto(&out.ClientSpec)
 	out.ImpersonationSpec = in.ImpersonationSpec
+	out.SuspensionSpec = in.SuspensionSpec
 	in.RequeueSpec.DeepCopyInto(&out.RequeueSpec)
 	in.RetrySpec.DeepCopyInto(&out.RetrySpec)
 	in.TimeoutSpec.DeepCopyInto(&out.TimeoutSpec)
