@@ -36,6 +36,7 @@ type ComponentSpec struct {
 	component.PlacementSpec     `json:",inline"`
 	component.ClientSpec        `json:",inline"`
 	component.ImpersonationSpec `json:",inline"`
+	component.SuspensionSpec    `json:",inline"`
 	component.RequeueSpec       `json:",inline"`
 	component.RetrySpec         `json:",inline"`
 	component.TimeoutSpec       `json:",inline"`
@@ -316,6 +317,7 @@ type Artifact struct {
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 // +kubebuilder:printcolumn:name="State",type=string,JSONPath=`.status.state`
+// +kubebuilder:printcolumn:name="Reason",type=string,JSONPath=`.status.conditions[?(@.type=='Ready')].reason`
 // +kubebuilder:printcolumn:name="Age",type="date",JSONPath=`.metadata.creationTimestamp`
 // +genclient
 
