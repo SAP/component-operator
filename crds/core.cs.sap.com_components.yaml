@@ -151,7 +151,54 @@ spec:
                   The according variables can provided inline by Substitute or as secrets by SubstituteFrom.
                   If a variable name appears in more than one secret, then later values have precedence,
                   and inline values have precedence over those defined through secrets.
+                  Furthermore, kustomize patches and image replacements can be defined, which are applied after the variable substitution.
                 properties:
+                  images:
+                    description: A list of kustomize image replacements.
+                    items:
+                      description: Kustomize image modifier specification, basically
+                        a subset of sigs.k8s.io/kustomize/api/types#Image
+                      properties:
+                        digest:
+                          type: string
+                        name:
+                          type: string
+                        newName:
+                          type: string
+                        newTag:
+                          type: string
+                      required:
+                      - name
+                      type: object
+                    type: array
+                  patches:
+                    description: A list of kustomize patches.
+                    items:
+                      description: Kustomize patch specification, basically a subset
+                        of sigs.k8s.io/kustomize/api/types#Patch
+                      properties:
+                        patch:
+                          type: string
+                        target:
+                          description: Kustomize object selector; corresponds to sigs.k8s.io/kustomize/api/types#Selector
+                          properties:
+                            annotationSelector:
+                              type: string
+                            group:
+                              type: string
+                            kind:
+                              type: string
+                            labelSelector:
+                              type: string
+                            name:
+                              type: string
+                            namespace:
+                              type: string
+                            version:
+                              type: string
+                          type: object
+                      type: object
+                    type: array
                   substitute:
                     additionalProperties:
                       type: string
