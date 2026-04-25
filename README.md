@@ -156,12 +156,15 @@ Parts of the given manifests may be encrypted. Currently, only [SOPS](https://gi
 So `spec.decryption.provider` must be set to the value `sops`. In that case, a secret reference must be provided, which follows the exact same
 [logic as used by flux](https://fluxcd.io/flux/guides/mozilla-sops/). With the restriction that only GPG and Age are supported as encryption engines.
 
-### Post-build variable substitution
+### Post-build variable substitution and post-rendering
 
 The rendered manifest may contain bash-style variable references, as defined by the [envsubst](https://github.com/drone/envsubst) Go package.
 The replacements may be defined either inline in `spec.postBuild.substitute` as `KEY: VALUE` pairs, or loaded by secret references, where
-the keys of the secrets will be interpreted as variable names (and therefore have to be valid bash variable names). If multiple secrets, and
-maybe inline substitutions are provided, they will be merged in the usual order (secrets in order of appearance, and then inline content). 
+the keys of the secrets will be interpreted as variable names (and therefore have to be valid bash variable names). If multiple secrets, and maybe inline substitutions are provided, they will be merged in the usual order (secrets in order of appearance, and then inline content).  In addition, kustomize patches and image replacements can be specified in `spec.postBuild.patches` and `spec.postBuild.images`. If present the rendered manifests (after variable substitution) are modified accordingly.
+
+### Suspension
+
+The reconciliation of a component can be suspended by setting `spec.suspend: true`. In that case the component enters a `Pending state` (with `Ready` reason `Suspended`). Note that this does not affect deletion of the component; when being deleted, the usual actions happen, regardless of the `spec.suspend` attribute.
 
 ### Adoption policy
 
