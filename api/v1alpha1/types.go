@@ -23,6 +23,7 @@ import (
 	fluxsourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 
 	"github.com/sap/component-operator-runtime/pkg/component"
+	"github.com/sap/component-operator-runtime/pkg/manifests"
 	componentoperatorruntimetypes "github.com/sap/component-operator-runtime/pkg/types"
 
 	"github.com/sap/component-operator/internal/object"
@@ -35,6 +36,7 @@ type ComponentSpec struct {
 	component.PlacementSpec     `json:",inline"`
 	component.ClientSpec        `json:",inline"`
 	component.ImpersonationSpec `json:",inline"`
+	component.SuspensionSpec    `json:",inline"`
 	component.RequeueSpec       `json:",inline"`
 	component.RetrySpec         `json:",inline"`
 	component.TimeoutSpec       `json:",inline"`
@@ -53,6 +55,8 @@ type ComponentSpec struct {
 	PostBuild    *PostBuild                     `json:"postBuild,omitempty"`
 	Dependencies []Dependency                   `json:"dependencies,omitempty"`
 }
+
+// +kubebuilder:validation:XValidation:rule="has(self.httpRepository) && !has(self.fluxGitRepository) && !has(self.fluxOciRepository) && !has(self.fluxBucket) && !has(self.fluxHelmChart) || !has(self.httpRepository) && has(self.fluxGitRepository) && !has(self.fluxOciRepository) && !has(self.fluxBucket) && !has(self.fluxHelmChart) || !has(self.httpRepository) && !has(self.fluxGitRepository) && has(self.fluxOciRepository) && !has(self.fluxBucket) && !has(self.fluxHelmChart) || !has(self.httpRepository) && !has(self.fluxGitRepository) && !has(self.fluxOciRepository) && has(self.fluxBucket) && !has(self.fluxHelmChart) || !has(self.httpRepository) && !has(self.fluxGitRepository) && !has(self.fluxOciRepository) && !has(self.fluxBucket) && has(self.fluxHelmChart)",message="Exactly one of 'httpRepository' or 'fluxGitRepository' or 'fluxOciRepository' or 'fluxBucket' or 'fluxHelmChart' must be provided"
 
 // SourceReference models the source of the templates used to render the dependent resources.
 // Exactly one of the options must be provided. Before accessing the Artifact() method,
@@ -246,11 +250,16 @@ type Decryption struct {
 // The according variables can provided inline by Substitute or as secrets by SubstituteFrom.
 // If a variable name appears in more than one secret, then later values have precedence,
 // and inline values have precedence over those defined through secrets.
+// Furthermore, kustomize patches and image replacements can be defined, which are applied after the variable substitution.
 type PostBuild struct {
 	// Variables to be substituted in the renderered manifests.
 	Substitute map[string]string `json:"substitute,omitempty"`
 	// Secrets containing variables to be used for substitution.
 	SubstituteFrom []component.SecretReference `json:"substituteFrom,omitempty" notFoundPolicy:"ignoreOnDeletion"`
+	// A list of kustomize patches.
+	Patches []manifests.KustomizePatch `json:"patches,omitempty"`
+	// A list of kustomize image replacements.
+	Images []manifests.KustomizeImage `json:"images,omitempty"`
 }
 
 // Dependency models a dependency of the containing component to another Component (referenced by namespace and name).
@@ -308,7 +317,8 @@ type Artifact struct {
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 // +kubebuilder:printcolumn:name="State",type=string,JSONPath=`.status.state`
-// +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
+// +kubebuilder:printcolumn:name="Reason",type=string,JSONPath=`.status.conditions[?(@.type=='Ready')].reason`
+// +kubebuilder:printcolumn:name="Age",type="date",JSONPath=`.metadata.creationTimestamp`
 // +genclient
 
 // Component is the Schema for the components API.

@@ -11,6 +11,7 @@ package v1alpha1
 
 import (
 	"github.com/sap/component-operator-runtime/pkg/component"
+	"github.com/sap/component-operator-runtime/pkg/manifests"
 	"k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -95,6 +96,7 @@ func (in *ComponentSpec) DeepCopyInto(out *ComponentSpec) {
 	out.PlacementSpec = in.PlacementSpec
 	in.ClientSpec.DeepCopyInto(&out.ClientSpec)
 	out.ImpersonationSpec = in.ImpersonationSpec
+	out.SuspensionSpec = in.SuspensionSpec
 	in.RequeueSpec.DeepCopyInto(&out.RequeueSpec)
 	in.RetrySpec.DeepCopyInto(&out.RetrySpec)
 	in.TimeoutSpec.DeepCopyInto(&out.TimeoutSpec)
@@ -304,6 +306,18 @@ func (in *PostBuild) DeepCopyInto(out *PostBuild) {
 		for i := range *in {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
+	}
+	if in.Patches != nil {
+		in, out := &in.Patches, &out.Patches
+		*out = make([]manifests.KustomizePatch, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
+		}
+	}
+	if in.Images != nil {
+		in, out := &in.Images, &out.Images
+		*out = make([]manifests.KustomizeImage, len(*in))
+		copy(*out, *in)
 	}
 }
 

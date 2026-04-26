@@ -3,7 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.20.0
+    controller-gen.kubebuilder.io/version: v0.20.1
   name: components.core.cs.sap.com
 spec:
   group: core.cs.sap.com
@@ -17,6 +17,9 @@ spec:
   - additionalPrinterColumns:
     - jsonPath: .status.state
       name: State
+      type: string
+    - jsonPath: .status.conditions[?(@.type=='Ready')].reason
+      name: Reason
       type: string
     - jsonPath: .metadata.creationTimestamp
       name: Age
@@ -151,7 +154,54 @@ spec:
                   The according variables can provided inline by Substitute or as secrets by SubstituteFrom.
                   If a variable name appears in more than one secret, then later values have precedence,
                   and inline values have precedence over those defined through secrets.
+                  Furthermore, kustomize patches and image replacements can be defined, which are applied after the variable substitution.
                 properties:
+                  images:
+                    description: A list of kustomize image replacements.
+                    items:
+                      description: Kustomize image modifier specification, basically
+                        a subset of sigs.k8s.io/kustomize/api/types#Image
+                      properties:
+                        digest:
+                          type: string
+                        name:
+                          type: string
+                        newName:
+                          type: string
+                        newTag:
+                          type: string
+                      required:
+                      - name
+                      type: object
+                    type: array
+                  patches:
+                    description: A list of kustomize patches.
+                    items:
+                      description: Kustomize patch specification, basically a subset
+                        of sigs.k8s.io/kustomize/api/types#Patch
+                      properties:
+                        patch:
+                          type: string
+                        target:
+                          description: Kustomize object selector; corresponds to sigs.k8s.io/kustomize/api/types#Selector
+                          properties:
+                            annotationSelector:
+                              type: string
+                            group:
+                              type: string
+                            kind:
+                              type: string
+                            labelSelector:
+                              type: string
+                            name:
+                              type: string
+                            namespace:
+                              type: string
+                            version:
+                              type: string
+                          type: object
+                      type: object
+                    type: array
                   substitute:
                     additionalProperties:
                       type: string
@@ -250,7 +300,23 @@ spec:
                         type: string
                     type: object
                 type: object
+                x-kubernetes-validations:
+                - message: Exactly one of 'httpRepository' or 'fluxGitRepository'
+                    or 'fluxOciRepository' or 'fluxBucket' or 'fluxHelmChart' must
+                    be provided
+                  rule: has(self.httpRepository) && !has(self.fluxGitRepository) &&
+                    !has(self.fluxOciRepository) && !has(self.fluxBucket) && !has(self.fluxHelmChart)
+                    || !has(self.httpRepository) && has(self.fluxGitRepository) &&
+                    !has(self.fluxOciRepository) && !has(self.fluxBucket) && !has(self.fluxHelmChart)
+                    || !has(self.httpRepository) && !has(self.fluxGitRepository) &&
+                    has(self.fluxOciRepository) && !has(self.fluxBucket) && !has(self.fluxHelmChart)
+                    || !has(self.httpRepository) && !has(self.fluxGitRepository) &&
+                    !has(self.fluxOciRepository) && has(self.fluxBucket) && !has(self.fluxHelmChart)
+                    || !has(self.httpRepository) && !has(self.fluxGitRepository) &&
+                    !has(self.fluxOciRepository) && !has(self.fluxBucket) && has(self.fluxHelmChart)
               sticky:
+                type: boolean
+              suspend:
                 type: boolean
               timeout:
                 pattern: ^([0-9]+(\.[0-9]+)?(ns|us|µs|ms|s|m|h))+$

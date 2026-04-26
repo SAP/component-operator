@@ -9,7 +9,6 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/drone/envsubst"
 	"github.com/sap/go-generics/maps"
 
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -70,45 +69,36 @@ func (g *Generator) Generate(ctx context.Context, namespace string, name string,
 		deepMerge(values, v)
 	}
 
+	if spec.PostBuild != nil {
+		transformableGenerator := manifests.NewGenerator(generator)
+		if len(spec.PostBuild.Substitute) > 0 || len(spec.PostBuild.SubstituteFrom) > 0 {
+			substitutions := make(map[string]string)
+			for _, ref := range spec.PostBuild.SubstituteFrom {
+				shallowMerge(substitutions, maps.Collect(ref.Data(), func(x []byte) string { return string(x) }))
+			}
+			shallowMerge(substitutions, spec.PostBuild.Substitute)
+			transformer, err := manifests.NewSubstitutionObjectTransformer(substitutions, componentoperatorruntimetypes.SelectorFunc[client.Object](func(object client.Object) bool {
+				return object.GetAnnotations()[reconcilerName+"/disableSubstitution"] != "true"
+			}))
+			if err != nil {
+				return nil, err
+			}
+			transformableGenerator.WithObjectTransformer(transformer)
+		}
+		if len(spec.PostBuild.Patches) > 0 || len(spec.PostBuild.Images) > 0 {
+			transformer, err := manifests.NewKustomizeObjectTransformer(spec.PostBuild.Patches, spec.PostBuild.Images)
+			if err != nil {
+				return nil, err
+			}
+			transformableGenerator.WithObjectTransformer(transformer)
+		}
+		generator = transformableGenerator
+	}
+
 	objects, err := generator.Generate(ctx, namespace, name, componentoperatorruntimetypes.UnstructurableMap(values))
 	if err != nil {
 		return nil, err
 	}
 
-	substitutions := make(map[string]string)
-	if spec.PostBuild != nil {
-		for _, ref := range spec.PostBuild.SubstituteFrom {
-			shallowMerge(substitutions, maps.Collect(ref.Data(), func(x []byte) string { return string(x) }))
-		}
-		shallowMerge(substitutions, spec.PostBuild.Substitute)
-	}
-
-	if len(substitutions) == 0 {
-		return objects, nil
-	}
-
-	var substitutedObjects []client.Object
-	for _, object := range objects {
-		if object.GetAnnotations()[reconcilerName+"/disableSubstitution"] == "true" {
-			continue
-		}
-		rawObject, err := kyaml.Marshal(object)
-		if err != nil {
-			return nil, err
-		}
-		stringObject := string(rawObject)
-		stringObject, err = envsubst.Eval(stringObject, func(s string) string {
-			return substitutions[s]
-		})
-		if err != nil {
-			return nil, err
-		}
-		rawObject = []byte(stringObject)
-		if err := kyaml.Unmarshal(rawObject, object); err != nil {
-			return nil, err
-		}
-		substitutedObjects = append(substitutedObjects, object)
-	}
-
-	return substitutedObjects, nil
+	return objects, nil
 }

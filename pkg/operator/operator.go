@@ -12,6 +12,7 @@ import (
 
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
+	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
@@ -98,6 +99,7 @@ func (o *Operator) GetName() string {
 }
 
 func (o *Operator) InitScheme(scheme *runtime.Scheme) {
+	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 	utilruntime.Must(operatorv1alpha1.AddToScheme(scheme))
 	utilruntime.Must(fluxsourcev1beta1.AddToScheme(scheme))
 	utilruntime.Must(fluxsourcev1beta2.AddToScheme(scheme))
