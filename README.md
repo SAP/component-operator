@@ -94,8 +94,9 @@ Currently, the following types of sources are supported (exactly one must be pre
 ```yaml
 # In-cluster blueprint
 sourceRef:
-  # namespace: source-ns
-  name: blueprint-name
+  blueprint:
+    # namespace: source-ns
+    name: blueprint-name
 
 # Flux GitRepository
 sourceRef:
