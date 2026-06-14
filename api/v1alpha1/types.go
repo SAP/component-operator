@@ -14,7 +14,7 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	runtime "k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime"
 	apitypes "k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -26,9 +26,9 @@ import (
 	"github.com/sap/component-operator-runtime/pkg/manifests"
 	componentoperatorruntimetypes "github.com/sap/component-operator-runtime/pkg/types"
 
+	httprepositoryutil "github.com/sap/component-operator/internal/httprepository/util"
 	"github.com/sap/component-operator/internal/object"
-	flux "github.com/sap/component-operator/internal/sources/flux/types"
-	httprepository "github.com/sap/component-operator/internal/sources/httprepository/util"
+	"github.com/sap/component-operator/pkg/meta"
 )
 
 // ComponentSpec defines the desired state of Component.
@@ -56,20 +56,21 @@ type ComponentSpec struct {
 	Dependencies []Dependency                   `json:"dependencies,omitempty"`
 }
 
-// +kubebuilder:validation:XValidation:rule="has(self.httpRepository) && !has(self.fluxGitRepository) && !has(self.fluxOciRepository) && !has(self.fluxBucket) && !has(self.fluxHelmChart) || !has(self.httpRepository) && has(self.fluxGitRepository) && !has(self.fluxOciRepository) && !has(self.fluxBucket) && !has(self.fluxHelmChart) || !has(self.httpRepository) && !has(self.fluxGitRepository) && has(self.fluxOciRepository) && !has(self.fluxBucket) && !has(self.fluxHelmChart) || !has(self.httpRepository) && !has(self.fluxGitRepository) && !has(self.fluxOciRepository) && has(self.fluxBucket) && !has(self.fluxHelmChart) || !has(self.httpRepository) && !has(self.fluxGitRepository) && !has(self.fluxOciRepository) && !has(self.fluxBucket) && has(self.fluxHelmChart)",message="Exactly one of 'httpRepository' or 'fluxGitRepository' or 'fluxOciRepository' or 'fluxBucket' or 'fluxHelmChart' must be provided"
+// +kubebuilder:validation:XValidation:rule="has(self.blueprint) && !has(self.httpRepository) && !has(self.fluxGitRepository) && !has(self.fluxOciRepository) && !has(self.fluxBucket) && !has(self.fluxHelmChart) || !has(self.blueprint) && has(self.httpRepository) && !has(self.fluxGitRepository) && !has(self.fluxOciRepository) && !has(self.fluxBucket) && !has(self.fluxHelmChart) || !has(self.blueprint) && !has(self.httpRepository) && has(self.fluxGitRepository) && !has(self.fluxOciRepository) && !has(self.fluxBucket) && !has(self.fluxHelmChart) || !has(self.blueprint) && !has(self.httpRepository) && !has(self.fluxGitRepository) && has(self.fluxOciRepository) && !has(self.fluxBucket) && !has(self.fluxHelmChart) || !has(self.blueprint) && !has(self.httpRepository) && !has(self.fluxGitRepository) && !has(self.fluxOciRepository) && has(self.fluxBucket) && !has(self.fluxHelmChart) || !has(self.blueprint) && !has(self.httpRepository) && !has(self.fluxGitRepository) && !has(self.fluxOciRepository) && !has(self.fluxBucket) && has(self.fluxHelmChart)",message="Exactly one of 'blueprint' or 'httpRepository' or 'fluxGitRepository' or 'fluxOciRepository' or 'fluxBucket' or 'fluxHelmChart' must be provided"
 
 // SourceReference models the source of the templates used to render the dependent resources.
 // Exactly one of the options must be provided. Before accessing the Artifact() method,
 // the SourceReference must be loaded by calling Load().
 type SourceReference struct {
-	HttpRepository    *HttpRepository    `json:"httpRepository,omitempty"`
-	FluxGitRepository *FluxGitRepository `json:"fluxGitRepository,omitempty"`
-	FluxOciRepository *FluxOciRepository `json:"fluxOciRepository,omitempty"`
-	FluxBucket        *FluxBucket        `json:"fluxBucket,omitempty"`
-	FluxHelmChart     *FluxHelmChart     `json:"fluxHelmChart,omitempty"`
-	artifact          Artifact           `json:"-"`
-	digest            string             `json:"-"`
-	loaded            bool               `json:"-"`
+	Blueprint         *BlueprintReference         `json:"blueprint,omitempty"`
+	HttpRepository    *HttpRepository             `json:"httpRepository,omitempty"`
+	FluxGitRepository *FluxGitRepositoryReference `json:"fluxGitRepository,omitempty"`
+	FluxOciRepository *FluxOciRepositoryReference `json:"fluxOciRepository,omitempty"`
+	FluxBucket        *FluxBucketReference        `json:"fluxBucket,omitempty"`
+	FluxHelmChart     *FluxHelmChartReference     `json:"fluxHelmChart,omitempty"`
+	artifact          Artifact                    `json:"-"`
+	digest            string                      `json:"-"`
+	loaded            bool                        `json:"-"`
 }
 
 var _ component.Reference[*Component] = &SourceReference{}
@@ -98,8 +99,43 @@ func (r *SourceReference) Load(ctx context.Context, clnt client.Client, componen
 		var digestData []any
 
 		switch {
+		case sourceRef.Blueprint != nil:
+			blueprint := &Blueprint{}
+			if err := clnt.Get(ctx, apitypes.NamespacedName(sourceRef.Blueprint.WithDefaultNamespace(component.Namespace)), blueprint); err != nil {
+				if apierrors.IsNotFound(err) {
+					return componentoperatorruntimetypes.NewRetriableError(err, new(10*time.Second))
+				}
+				return err
+			}
+
+			blueprintDigest := blueprint.GetDigest()
+			blueprintRevision := blueprint.GetRevision()
+			blueprintVersion := &BlueprintVersion{
+				TypeMeta: metav1.TypeMeta{
+					Kind:       KindBlueprintVersion,
+					APIVersion: GroupVersion.String(),
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      fmt.Sprintf("%s--%s", blueprint.Name, blueprintDigest),
+					Namespace: blueprint.Namespace,
+				},
+				Spec: BlueprintVersionSpec{
+					Blueprint:     blueprint.Name,
+					Digest:        blueprintDigest,
+					Revision:      blueprintRevision,
+					BlueprintSpec: blueprint.Spec,
+				},
+			}
+			if err := clnt.Patch(ctx, blueprintVersion, client.Apply, client.FieldOwner(meta.Name), client.ForceOwnership); err != nil {
+				return err
+			}
+
+			sourceRefArtifact.Url = fmt.Sprintf("blueprint://%s/%s/%s", blueprint.Namespace, blueprint.Name, blueprintDigest)
+			sourceRefArtifact.Digest = blueprintDigest
+			sourceRefArtifact.Revision = blueprintRevision
+			digestData = []any{sourceRefArtifact.Url, sourceRefArtifact.Digest, sourceRefArtifact.Revision}
 		case sourceRef.HttpRepository != nil:
-			url, digest, revision, err := httprepository.GetArtifact(sourceRef.HttpRepository.Url, sourceRef.HttpRepository.DigestHeader, sourceRef.HttpRepository.RevisionHeader)
+			url, digest, revision, err := httprepositoryutil.GetArtifact(sourceRef.HttpRepository.Url, sourceRef.HttpRepository.DigestHeader, sourceRef.HttpRepository.RevisionHeader)
 			if err != nil {
 				return err
 			}
@@ -110,7 +146,7 @@ func (r *SourceReference) Load(ctx context.Context, clnt client.Client, componen
 			digestData = []any{sourceRefArtifact.Url, sourceRefArtifact.Digest, sourceRefArtifact.Revision}
 		case sourceRef.FluxGitRepository != nil, sourceRef.FluxOciRepository != nil, sourceRef.FluxBucket != nil, sourceRef.FluxHelmChart != nil:
 			var sourceName NamespacedName
-			var source flux.Source
+			var source meta.FluxSource
 
 			switch {
 			case sourceRef.FluxGitRepository != nil:
@@ -131,27 +167,27 @@ func (r *SourceReference) Load(ctx context.Context, clnt client.Client, componen
 
 			if err := clnt.Get(ctx, apitypes.NamespacedName(sourceName), source); err != nil {
 				if apimeta.IsNoMatchError(err) || apierrors.IsNotFound(err) {
-					return componentoperatorruntimetypes.NewRetriableError(err, ref(10*time.Second))
+					return componentoperatorruntimetypes.NewRetriableError(err, new(10*time.Second))
 				}
 				return err
 			}
 			if !object.IsReady(source) {
-				return componentoperatorruntimetypes.NewRetriableError(fmt.Errorf("source not ready"), ref(10*time.Second))
+				return componentoperatorruntimetypes.NewRetriableError(fmt.Errorf("source not ready"), new(10*time.Second))
 			}
 
 			artifact := source.GetArtifact()
 			if artifact == nil {
-				return componentoperatorruntimetypes.NewRetriableError(fmt.Errorf("missing artifact on ready source"), ref(10*time.Second))
+				return componentoperatorruntimetypes.NewRetriableError(fmt.Errorf("missing artifact on ready source"), new(10*time.Second))
 			}
 
 			if artifact.URL == "" {
-				return componentoperatorruntimetypes.NewRetriableError(fmt.Errorf("source not ready (missing URL)"), ref(10*time.Second))
+				return componentoperatorruntimetypes.NewRetriableError(fmt.Errorf("source not ready (missing URL)"), new(10*time.Second))
 			}
 			if artifact.Digest == "" {
-				return componentoperatorruntimetypes.NewRetriableError(fmt.Errorf("source not ready (missing digest)"), ref(10*time.Second))
+				return componentoperatorruntimetypes.NewRetriableError(fmt.Errorf("source not ready (missing digest)"), new(10*time.Second))
 			}
 			if artifact.Revision == "" {
-				return componentoperatorruntimetypes.NewRetriableError(fmt.Errorf("source not ready (missing revision)"), ref(10*time.Second))
+				return componentoperatorruntimetypes.NewRetriableError(fmt.Errorf("source not ready (missing revision)"), new(10*time.Second))
 			}
 
 			sourceRefArtifact.Url = artifact.URL
@@ -195,11 +231,17 @@ func (r *SourceReference) Artifact() Artifact {
 
 // Check if source reference equals other given source reference.
 func (r *SourceReference) Equals(s *SourceReference) bool {
-	return equal(r.HttpRepository, s.HttpRepository) &&
+	return equal(r.Blueprint, s.Blueprint) &&
+		equal(r.HttpRepository, s.HttpRepository) &&
 		equal(r.FluxGitRepository, s.FluxGitRepository) &&
 		equal(r.FluxOciRepository, s.FluxOciRepository) &&
 		equal(r.FluxBucket, s.FluxBucket) &&
 		equal(r.FluxHelmChart, s.FluxHelmChart)
+}
+
+// Reference to a Blueprint.
+type BlueprintReference struct {
+	NamespacedName `json:",inline"`
 }
 
 // Reference to a generic http repository.
@@ -217,22 +259,22 @@ type HttpRepository struct {
 }
 
 // Reference to a flux GitRepository.
-type FluxGitRepository struct {
+type FluxGitRepositoryReference struct {
 	NamespacedName `json:",inline"`
 }
 
 // Reference to a flux OCIRepository.
-type FluxOciRepository struct {
+type FluxOciRepositoryReference struct {
 	NamespacedName `json:",inline"`
 }
 
 // Reference to a flux Bucket.
-type FluxBucket struct {
+type FluxBucketReference struct {
 	NamespacedName `json:",inline"`
 }
 
 // Reference to a flux HelmChart.
-type FluxHelmChart struct {
+type FluxHelmChartReference struct {
 	NamespacedName `json:",inline"`
 }
 
@@ -404,10 +446,78 @@ func isComponentProcessing(c *Component) bool {
 	return c.Status.ProcessingSince != nil && c.Status.LastObservedAt.Sub(c.Status.ProcessingSince.Time) < timeout
 }
 
-func equal[T comparable](x *T, y *T) bool {
-	return x == nil && y == nil || x != nil && y != nil && *x == *y
+// BlueprintSpec defines the desired state of Blueprint.
+type BlueprintSpec struct {
+	Files map[string]string `json:"files,omitempty"`
 }
+
+// +kubebuilder:object:root=true
+// +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
+// +genclient
+
+// Blueprint is the Schema for the blueprints API.
+type Blueprint struct {
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+
+	Spec BlueprintSpec `json:"spec"`
+}
+
+func (b *Blueprint) GetDigest() string {
+	return calculateDigest(b.Spec)
+}
+
+func (b *Blueprint) GetRevision() string {
+	return fmt.Sprintf("generation:%d", b.Generation)
+}
+
+// +kubebuilder:object:root=true
+
+// BlueprintList contains a list of Blueprint.
+type BlueprintList struct {
+	metav1.TypeMeta `json:",inline"`
+	metav1.ListMeta `json:"metadata,omitempty"`
+	Items           []Blueprint `json:"items"`
+}
+
+// BlueprintVersionSpec defines the desired state of BlueprintVersion.
+type BlueprintVersionSpec struct {
+	Blueprint     string `json:"blueprint"`
+	Digest        string `json:"digest"`
+	Revision      string `json:"revision"`
+	BlueprintSpec `json:",inline"`
+}
+
+// +kubebuilder:object:root=true
+// +kubebuilder:selectablefield:JSONPath=".spec.blueprint"
+// +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
+// +genclient
+
+// BlueprintVersion is the Schema for the blueprint versions API.
+type BlueprintVersion struct {
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+
+	Spec BlueprintVersionSpec `json:"spec"`
+}
+
+// +kubebuilder:object:root=true
+
+// BlueprintVersionList contains a list of BlueprintVersion.
+type BlueprintVersionList struct {
+	metav1.TypeMeta `json:",inline"`
+	metav1.ListMeta `json:"metadata,omitempty"`
+	Items           []BlueprintVersion `json:"items"`
+}
+
+const (
+	KindComponent        = "Component"
+	KindBlueprint        = "Blueprint"
+	KindBlueprintVersion = "BlueprintVersion"
+)
 
 func init() {
 	SchemeBuilder.Register(&Component{}, &ComponentList{})
+	SchemeBuilder.Register(&Blueprint{}, &BlueprintList{})
+	SchemeBuilder.Register(&BlueprintVersion{}, &BlueprintVersionList{})
 }

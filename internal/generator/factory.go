@@ -9,6 +9,7 @@ import (
 	"archive/tar"
 	"bytes"
 	"compress/gzip"
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -16,13 +17,19 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
+	"strings"
 	"sync"
 	"time"
+
+	apitypes "k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/sap/component-operator-runtime/pkg/manifests"
 	"github.com/sap/component-operator-runtime/pkg/manifests/helm"
 	"github.com/sap/component-operator-runtime/pkg/manifests/kustomize"
 
+	operatorv1alpha1 "github.com/sap/component-operator/api/v1alpha1"
 	"github.com/sap/component-operator/internal/decrypt"
 )
 
@@ -34,35 +41,44 @@ type Item struct {
 // TODO: make configurable
 const validity = 60 * time.Minute
 
-var items map[string]*Item
-var mutex sync.Mutex
+type Factory struct {
+	client client.Client
+	items  map[string]*Item
+	mutex  sync.Mutex
+}
 
-func init() {
-	items = make(map[string]*Item)
+func newFactory(clnt client.Client) *Factory {
+	factory := &Factory{
+		client: clnt,
+		items:  make(map[string]*Item),
+	}
+
 	go func() {
 		ticker := time.NewTicker(10 * time.Second)
 		for {
 			<-ticker.C
 			now := time.Now()
-			mutex.Lock()
-			for id, item := range items {
+			factory.mutex.Lock()
+			for id, item := range factory.items {
 				if item.ValidUntil.Before(now) {
-					delete(items, id)
+					delete(factory.items, id)
 				}
 			}
-			mutex.Unlock()
+			factory.mutex.Unlock()
 		}
 	}()
+
+	return factory
 }
 
-func GetGenerator(url string, path string, digest string, decryptionProvider string, decryptionKeys map[string][]byte) (manifests.Generator, error) {
-	mutex.Lock()
-	defer mutex.Unlock()
+func (f *Factory) GetGenerator(url string, path string, digest string, decryptionProvider string, decryptionKeys map[string][]byte) (manifests.Generator, error) {
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
 
 	// note: url is actually not needed in the generator id, digest and path is enough to identify the content
 	id := url + "\n" + digest + "\n" + path + "\n" + decryptionProvider + "\n" + calculateDigest(decryptionKeys)
 
-	if item, ok := items[id]; ok {
+	if item, ok := f.items[id]; ok {
 		item.ValidUntil = time.Now().Add(validity)
 		return item.Generator, nil
 	} else {
@@ -87,8 +103,14 @@ func GetGenerator(url string, path string, digest string, decryptionProvider str
 				return nil, fmt.Errorf("invalid decryption provider: %s", decryptionProvider)
 			}
 		}
-		if err := downloadArchive(url, tmpdir); err != nil {
-			return nil, err
+		if strings.HasPrefix(url, "blueprint://") {
+			if err := f.downloadBlueprint(url, tmpdir); err != nil {
+				return nil, err
+			}
+		} else {
+			if err := f.downloadArchive(url, tmpdir); err != nil {
+				return nil, err
+			}
 		}
 		fullPath := filepath.Join(tmpdir, path)
 		if info, err := os.Stat(fullPath); err != nil {
@@ -123,12 +145,41 @@ func GetGenerator(url string, path string, digest string, decryptionProvider str
 		} else {
 			return nil, err
 		}
-		items[id] = &Item{Generator: generator, ValidUntil: time.Now().Add(validity)}
+		f.items[id] = &Item{Generator: generator, ValidUntil: time.Now().Add(validity)}
 		return generator, nil
 	}
 }
 
-func downloadArchive(url string, targetPath string) error {
+func (f *Factory) downloadBlueprint(url string, targetPath string) error {
+	if m := regexp.MustCompile(`^blueprint://([^/]+)/([^/]+)/([^/]+)$`).FindStringSubmatch(url); m != nil {
+		blueprintNamespace := m[1]
+		blueprintName := m[2]
+		blueprintDigest := m[3]
+
+		blueprintVersion := operatorv1alpha1.BlueprintVersion{}
+		if err := f.client.Get(context.TODO(), apitypes.NamespacedName{Namespace: blueprintNamespace, Name: fmt.Sprintf("%s--%s", blueprintName, blueprintDigest)}, &blueprintVersion); err != nil {
+			return err
+		}
+
+		for path, content := range blueprintVersion.Spec.Files {
+			if path != filepath.Clean(path) || strings.Contains(path, "..") {
+				return fmt.Errorf("invalid file path in blueprint: %s", path)
+			}
+			if err := os.MkdirAll(filepath.Join(targetPath, filepath.Dir(path)), 0755); err != nil {
+				return err
+			}
+			if err := os.WriteFile(filepath.Join(targetPath, path), []byte(content), 0644); err != nil {
+				return err
+			}
+		}
+
+		return nil
+	} else {
+		return fmt.Errorf("invalid blueprint URL: %s", url)
+	}
+}
+
+func (f *Factory) downloadArchive(url string, targetPath string) error {
 	// TODO: use a local or even global file cache
 	resp, err := http.Get(url)
 	if err != nil {
