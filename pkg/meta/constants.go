@@ -3,10 +3,8 @@ SPDX-FileCopyrightText: 2026 SAP SE or an SAP affiliate company and component-op
 SPDX-License-Identifier: Apache-2.0
 */
 
-package operator
+package meta
 
-// TODO: consolidate all the util files into an internal reuse package
-
-func ref[T any](x T) *T {
-	return &x
-}
+const (
+	Name = "component-operator.cs.sap.com"
+)

@@ -13,6 +13,10 @@ import (
 
 // Interface provides access to all the informers in this group version.
 type Interface interface {
+	// Blueprints returns a BlueprintInformer.
+	Blueprints() BlueprintInformer
+	// BlueprintVersions returns a BlueprintVersionInformer.
+	BlueprintVersions() BlueprintVersionInformer
 	// Components returns a ComponentInformer.
 	Components() ComponentInformer
 }
@@ -26,6 +30,16 @@ type version struct {
 // New returns a new Interface.
 func New(f internalinterfaces.SharedInformerFactory, namespace string, tweakListOptions internalinterfaces.TweakListOptionsFunc) Interface {
 	return &version{factory: f, namespace: namespace, tweakListOptions: tweakListOptions}
+}
+
+// Blueprints returns a BlueprintInformer.
+func (v *version) Blueprints() BlueprintInformer {
+	return &blueprintInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
+}
+
+// BlueprintVersions returns a BlueprintVersionInformer.
+func (v *version) BlueprintVersions() BlueprintVersionInformer {
+	return &blueprintVersionInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
 }
 
 // Components returns a ComponentInformer.

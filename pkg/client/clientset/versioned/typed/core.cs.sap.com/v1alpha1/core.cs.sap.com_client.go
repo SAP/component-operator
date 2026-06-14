@@ -17,12 +17,22 @@ import (
 
 type CoreV1alpha1Interface interface {
 	RESTClient() rest.Interface
+	BlueprintsGetter
+	BlueprintVersionsGetter
 	ComponentsGetter
 }
 
 // CoreV1alpha1Client is used to interact with features provided by the core.cs.sap.com group.
 type CoreV1alpha1Client struct {
 	restClient rest.Interface
+}
+
+func (c *CoreV1alpha1Client) Blueprints(namespace string) BlueprintInterface {
+	return newBlueprints(c, namespace)
+}
+
+func (c *CoreV1alpha1Client) BlueprintVersions(namespace string) BlueprintVersionInterface {
+	return newBlueprintVersions(c, namespace)
 }
 
 func (c *CoreV1alpha1Client) Components(namespace string) ComponentInterface {

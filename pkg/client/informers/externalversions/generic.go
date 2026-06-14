@@ -42,6 +42,10 @@ func (f *genericInformer) Lister() cache.GenericLister {
 func (f *sharedInformerFactory) ForResource(resource schema.GroupVersionResource) (GenericInformer, error) {
 	switch resource {
 	// Group=core.cs.sap.com, Version=v1alpha1
+	case v1alpha1.SchemeGroupVersion.WithResource("blueprints"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.Core().V1alpha1().Blueprints().Informer()}, nil
+	case v1alpha1.SchemeGroupVersion.WithResource("blueprintversions"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.Core().V1alpha1().BlueprintVersions().Informer()}, nil
 	case v1alpha1.SchemeGroupVersion.WithResource("components"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.Core().V1alpha1().Components().Informer()}, nil
 

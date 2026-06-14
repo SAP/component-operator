@@ -3,7 +3,7 @@ SPDX-FileCopyrightText: 2026 SAP SE or an SAP affiliate company and component-op
 SPDX-License-Identifier: Apache-2.0
 */
 
-package types
+package meta
 
 import (
 	fluxsourcev1 "github.com/fluxcd/source-controller/api/v1"
@@ -11,7 +11,7 @@ import (
 	"github.com/sap/component-operator/internal/object"
 )
 
-type Source interface {
+type FluxSource interface {
 	object.Object
 	fluxsourcev1.Source
 }

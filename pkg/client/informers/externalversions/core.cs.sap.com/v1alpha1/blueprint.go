@@ -22,38 +22,38 @@ import (
 	cache "k8s.io/client-go/tools/cache"
 )
 
-// ComponentInformer provides access to a shared informer and lister for
-// Components.
-type ComponentInformer interface {
+// BlueprintInformer provides access to a shared informer and lister for
+// Blueprints.
+type BlueprintInformer interface {
 	Informer() cache.SharedIndexInformer
-	Lister() corecssapcomv1alpha1.ComponentLister
+	Lister() corecssapcomv1alpha1.BlueprintLister
 }
 
-type componentInformer struct {
+type blueprintInformer struct {
 	factory          internalinterfaces.SharedInformerFactory
 	tweakListOptions internalinterfaces.TweakListOptionsFunc
 	namespace        string
 }
 
-// NewComponentInformer constructs a new informer for Component type.
+// NewBlueprintInformer constructs a new informer for Blueprint type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewComponentInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
-	return NewComponentInformerWithOptions(client, namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: indexers})
+func NewBlueprintInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
+	return NewBlueprintInformerWithOptions(client, namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: indexers})
 }
 
-// NewFilteredComponentInformer constructs a new informer for Component type.
+// NewFilteredBlueprintInformer constructs a new informer for Blueprint type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewFilteredComponentInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
-	return NewComponentInformerWithOptions(client, namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: indexers, TweakListOptions: tweakListOptions})
+func NewFilteredBlueprintInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
+	return NewBlueprintInformerWithOptions(client, namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: indexers, TweakListOptions: tweakListOptions})
 }
 
-// NewComponentInformerWithOptions constructs a new informer for Component type with additional options.
+// NewBlueprintInformerWithOptions constructs a new informer for Blueprint type with additional options.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewComponentInformerWithOptions(client versioned.Interface, namespace string, options internalinterfaces.InformerOptions) cache.SharedIndexInformer {
-	gvr := schema.GroupVersionResource{Group: "core.cs.sap.com", Version: "v1alpha1", Resource: "components"}
+func NewBlueprintInformerWithOptions(client versioned.Interface, namespace string, options internalinterfaces.InformerOptions) cache.SharedIndexInformer {
+	gvr := schema.GroupVersionResource{Group: "core.cs.sap.com", Version: "v1alpha1", Resource: "blueprints"}
 	identifier := options.InformerName.WithResource(gvr)
 	tweakListOptions := options.TweakListOptions
 	return cache.NewSharedIndexInformerWithOptions(
@@ -62,28 +62,28 @@ func NewComponentInformerWithOptions(client versioned.Interface, namespace strin
 				if tweakListOptions != nil {
 					tweakListOptions(&opts)
 				}
-				return client.CoreV1alpha1().Components(namespace).List(context.Background(), opts)
+				return client.CoreV1alpha1().Blueprints(namespace).List(context.Background(), opts)
 			},
 			WatchFunc: func(opts v1.ListOptions) (watch.Interface, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&opts)
 				}
-				return client.CoreV1alpha1().Components(namespace).Watch(context.Background(), opts)
+				return client.CoreV1alpha1().Blueprints(namespace).Watch(context.Background(), opts)
 			},
 			ListWithContextFunc: func(ctx context.Context, opts v1.ListOptions) (runtime.Object, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&opts)
 				}
-				return client.CoreV1alpha1().Components(namespace).List(ctx, opts)
+				return client.CoreV1alpha1().Blueprints(namespace).List(ctx, opts)
 			},
 			WatchFuncWithContext: func(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&opts)
 				}
-				return client.CoreV1alpha1().Components(namespace).Watch(ctx, opts)
+				return client.CoreV1alpha1().Blueprints(namespace).Watch(ctx, opts)
 			},
 		}, client),
-		&apiscorecssapcomv1alpha1.Component{},
+		&apiscorecssapcomv1alpha1.Blueprint{},
 		cache.SharedIndexInformerOptions{
 			ResyncPeriod: options.ResyncPeriod,
 			Indexers:     options.Indexers,
@@ -92,14 +92,14 @@ func NewComponentInformerWithOptions(client versioned.Interface, namespace strin
 	)
 }
 
-func (f *componentInformer) defaultInformer(client versioned.Interface, resyncPeriod time.Duration) cache.SharedIndexInformer {
-	return NewComponentInformerWithOptions(client, f.namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, InformerName: f.factory.InformerName(), TweakListOptions: f.tweakListOptions})
+func (f *blueprintInformer) defaultInformer(client versioned.Interface, resyncPeriod time.Duration) cache.SharedIndexInformer {
+	return NewBlueprintInformerWithOptions(client, f.namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, InformerName: f.factory.InformerName(), TweakListOptions: f.tweakListOptions})
 }
 
-func (f *componentInformer) Informer() cache.SharedIndexInformer {
-	return f.factory.InformerFor(&apiscorecssapcomv1alpha1.Component{}, f.defaultInformer)
+func (f *blueprintInformer) Informer() cache.SharedIndexInformer {
+	return f.factory.InformerFor(&apiscorecssapcomv1alpha1.Blueprint{}, f.defaultInformer)
 }
 
-func (f *componentInformer) Lister() corecssapcomv1alpha1.ComponentLister {
-	return corecssapcomv1alpha1.NewComponentLister(f.Informer().GetIndexer())
+func (f *blueprintInformer) Lister() corecssapcomv1alpha1.BlueprintLister {
+	return corecssapcomv1alpha1.NewBlueprintLister(f.Informer().GetIndexer())
 }
