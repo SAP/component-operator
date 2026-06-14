@@ -92,6 +92,11 @@ The mandatory field `spec.sourceRef` defines the source of the manifests used fo
 Currently, the following types of sources are supported (exactly one must be present):
 
 ```yaml
+# In-cluster blueprint
+sourceRef:
+  # namespace: source-ns
+  name: blueprint-name
+
 # Flux GitRepository
 sourceRef:
   fluxGitRepository:
@@ -117,7 +122,26 @@ sourceRef:
     name: helmchart-name
 ```
 
-Cross-namespace references are allowed; if namespace is not provided, the source will be assumed to exist in the component's namespace.
+Cross-namespace references are allowed; if namespace is not provided, the source will be assumed to exist in the component's namespace. Unlike the flux based source types, blueprints serve as an in-cluster representation holding the manifests of the dependent resources. A blueprint could look like this:
+
+```yaml
+---
+apiVersion: core.cs.sap.com/v1alpha1
+kind: Blueprint
+metadata:
+  namespace: source-ns
+  name: blueprint-name
+spec:
+  files:
+    resources/cm.yaml: |-
+      ---
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: {{ name }}-cm
+      data:
+        foo: bar
+```
 
 ### Source revision and digest
 
