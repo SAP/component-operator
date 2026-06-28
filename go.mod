@@ -10,14 +10,13 @@ require (
 	github.com/getsops/sops/v3 v3.12.1
 	github.com/go-logr/logr v1.4.3
 	github.com/pkg/errors v0.9.1
-	github.com/sap/component-operator-runtime v0.3.150
-	github.com/sap/go-generics v0.2.63
-	k8s.io/api v0.36.2
-	k8s.io/apiextensions-apiserver v0.36.2
+	github.com/sap/component-operator-runtime v0.3.151
+	github.com/sap/go-generics v0.2.64
+	k8s.io/apiextensions-apiserver v0.35.1
 	k8s.io/apimachinery v0.36.2
-	k8s.io/client-go v0.36.2
-	k8s.io/code-generator v0.36.2
-	sigs.k8s.io/controller-runtime v0.24.1
+	k8s.io/client-go v0.35.1
+	k8s.io/code-generator v0.35.1
+	sigs.k8s.io/controller-runtime v0.23.3
 	sigs.k8s.io/controller-runtime/tools/setup-envtest v0.0.0-20260216173200-e4c1c38bcbdb
 	sigs.k8s.io/controller-tools v0.21.0
 	sigs.k8s.io/yaml v1.6.0
@@ -190,12 +189,20 @@ require (
 	golang.org/x/crypto v0.50.0 // indirect
 	golang.org/x/mod v0.35.0 // indirect
 	golang.org/x/net v0.53.0 // indirect
+<<<<<<< HEAD
 	golang.org/x/oauth2 v0.36.0 // indirect
+=======
+	golang.org/x/oauth2 v0.35.0 // indirect
+>>>>>>> main
 	golang.org/x/sync v0.20.0 // indirect
 	golang.org/x/sys v0.43.0 // indirect
 	golang.org/x/term v0.42.0 // indirect
 	golang.org/x/text v0.36.0 // indirect
+<<<<<<< HEAD
 	golang.org/x/time v0.15.0 // indirect
+=======
+	golang.org/x/time v0.14.0 // indirect
+>>>>>>> main
 	golang.org/x/tools v0.44.0 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.5.0 // indirect
@@ -203,7 +210,11 @@ require (
 	google.golang.org/genproto v0.0.0-20260128011058-8636f8732409 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20260203192932-546029d2fa20 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260203192932-546029d2fa20 // indirect
+<<<<<<< HEAD
 	google.golang.org/grpc v1.79.3 // indirect
+=======
+	google.golang.org/grpc v1.79.1 // indirect
+>>>>>>> main
 	google.golang.org/protobuf v1.36.12-0.20260120151049-f2248ac996af // indirect
 	gopkg.in/evanphx/json-patch.v4 v4.13.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
@@ -216,8 +227,13 @@ require (
 	k8s.io/gengo/v2 v2.0.0-20250922181213-ec3ebc5fd46b // indirect
 	k8s.io/klog/v2 v2.140.0 // indirect
 	k8s.io/kube-aggregator v0.35.1 // indirect
+<<<<<<< HEAD
 	k8s.io/kube-openapi v0.0.0-20260427204847-8949caaa1199 // indirect
 	k8s.io/utils v0.0.0-20260319190234-28399d86e0b5 // indirect
+=======
+	k8s.io/kube-openapi v0.0.0-20260317180543-43fb72c5454a // indirect
+	k8s.io/utils v0.0.0-20260210185600-b8788abfbbc2 // indirect
+>>>>>>> main
 	sigs.k8s.io/cli-utils v0.37.2 // indirect
 	sigs.k8s.io/json v0.0.0-20250730193827-2d320260d730 // indirect
 	sigs.k8s.io/kustomize/api v0.21.1 // indirect
