@@ -16,7 +16,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 
 	fluxsourcev1 "github.com/fluxcd/source-controller/api/v1"
-	fluxsourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 
 	operatorv1alpha1 "github.com/sap/component-operator/api/v1alpha1"
 	"github.com/sap/component-operator/pkg/meta"
@@ -39,9 +38,9 @@ func MatchingFluxSource(source meta.FluxSource) client.ListOption {
 	switch source.(type) {
 	case *fluxsourcev1.GitRepository:
 		indexKey = gitRepositoryIndexKey
-	case *fluxsourcev1beta2.OCIRepository:
+	case *fluxsourcev1.OCIRepository:
 		indexKey = ociRepositoryIndexKey
-	case *fluxsourcev1beta2.Bucket:
+	case *fluxsourcev1.Bucket:
 		indexKey = bucketIndexKey
 	case *fluxsourcev1.HelmChart:
 		indexKey = helmChartIndexKey
