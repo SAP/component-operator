@@ -14,7 +14,6 @@ import (
 
 	fluxevents "github.com/fluxcd/pkg/runtime/events"
 	fluxsourcev1 "github.com/fluxcd/source-controller/api/v1"
-	fluxsourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 
 	"github.com/sap/component-operator-runtime/pkg/cluster"
 	"github.com/sap/component-operator-runtime/pkg/component"
@@ -44,10 +43,10 @@ func SetupWithManager(mgr manager.Manager, options ReconcilerOptions) (*componen
 			&fluxsourcev1.GitRepository{},
 			newFluxSourceHandler(mgr.GetCache(), mgr.GetLogger())).
 		Watches(
-			&fluxsourcev1beta2.OCIRepository{},
+			&fluxsourcev1.OCIRepository{},
 			newFluxSourceHandler(mgr.GetCache(), mgr.GetLogger())).
 		Watches(
-			&fluxsourcev1beta2.Bucket{},
+			&fluxsourcev1.Bucket{},
 			newFluxSourceHandler(mgr.GetCache(), mgr.GetLogger())).
 		Watches(
 			&fluxsourcev1.HelmChart{},
