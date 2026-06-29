@@ -28,3 +28,9 @@ Dockerfile.cross
 
 # temp stuff
 /tmp
+
+
+.hugo_build.lock
+/website/node_modules
+/website/public
+/website/resources

@@ -1,0 +1,7 @@
+baseURL = 'https://sap.github.io/component-operator/'
+title = 'Component Operator'
+theme = "docsy"
+
+# Language settings
+contentDir = "content/en"
+defaultContentLanguage = "en"
