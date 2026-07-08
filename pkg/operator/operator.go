@@ -17,8 +17,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	fluxsourcev1 "github.com/fluxcd/source-controller/api/v1"
-	fluxsourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
-	fluxsourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 
 	"github.com/sap/component-operator-runtime/pkg/operator"
 
@@ -97,8 +95,6 @@ func (o *Operator) GetName() string {
 func (o *Operator) InitScheme(scheme *runtime.Scheme) {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 	utilruntime.Must(operatorv1alpha1.AddToScheme(scheme))
-	utilruntime.Must(fluxsourcev1beta1.AddToScheme(scheme))
-	utilruntime.Must(fluxsourcev1beta2.AddToScheme(scheme))
 	utilruntime.Must(fluxsourcev1.AddToScheme(scheme))
 }
 

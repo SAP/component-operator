@@ -34,7 +34,7 @@ spec:
   #     name: podinfo-helm
   # path: podinfo
 ---
-apiVersion: source.toolkit.fluxcd.io/v1beta2
+apiVersion: source.toolkit.fluxcd.io/v1
 kind: GitRepository
 metadata:
   name: podinfo
@@ -44,7 +44,7 @@ spec:
     tag: 6.6.3
   url: https://github.com/stefanprodan/podinfo
 # ---
-# apiVersion: source.toolkit.fluxcd.io/v1beta2
+# apiVersion: source.toolkit.fluxcd.io/v1
 # kind: OCIRepository
 # metadata:
 #   name: podinfo-helm
@@ -54,7 +54,7 @@ spec:
 #   ref:
 #     tag: 6.6.3
 # ---
-# apiVersion: source.toolkit.fluxcd.io/v1beta2
+# apiVersion: source.toolkit.fluxcd.io/v1
 # kind: HelmRepository
 # metadata:
 #   name: podinfo-oci
@@ -63,7 +63,7 @@ spec:
 #   type: oci
 #   url: oci://ghcr.io/stefanprodan/charts
 # ---
-# apiVersion: source.toolkit.fluxcd.io/v1beta2
+# apiVersion: source.toolkit.fluxcd.io/v1
 # kind: HelmRepository
 # metadata:
 #   name: podinfo-helm
@@ -71,7 +71,7 @@ spec:
 #   interval: 1m0s
 #   url: https://stefanprodan.github.io/podinfo
 # ---
-# apiVersion: source.toolkit.fluxcd.io/v1beta2
+# apiVersion: source.toolkit.fluxcd.io/v1
 # kind: HelmChart
 # metadata:
 #   name: podinfo-git
@@ -83,7 +83,7 @@ spec:
 #     kind: GitRepository
 #     name: podinfo
 # ---
-# apiVersion: source.toolkit.fluxcd.io/v1beta2
+# apiVersion: source.toolkit.fluxcd.io/v1
 # kind: HelmChart
 # metadata:
 #   name: podinfo-oci
@@ -96,7 +96,7 @@ spec:
 #     name: podinfo-oci
 #   version: 6.6.3
 # ---
-# apiVersion: source.toolkit.fluxcd.io/v1beta2
+# apiVersion: source.toolkit.fluxcd.io/v1
 # kind: HelmChart
 # metadata:
 #   name: podinfo-helm

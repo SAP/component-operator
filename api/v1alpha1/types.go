@@ -20,7 +20,6 @@ import (
 
 	fluxeventv1beta1 "github.com/fluxcd/pkg/apis/event/v1beta1"
 	fluxsourcev1 "github.com/fluxcd/source-controller/api/v1"
-	fluxsourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 
 	"github.com/sap/component-operator-runtime/pkg/component"
 	"github.com/sap/component-operator-runtime/pkg/manifests"
@@ -154,10 +153,10 @@ func (r *SourceReference) Load(ctx context.Context, clnt client.Client, componen
 				source = &fluxsourcev1.GitRepository{}
 			case sourceRef.FluxOciRepository != nil:
 				sourceName = sourceRef.FluxOciRepository.WithDefaultNamespace(component.Namespace)
-				source = &fluxsourcev1beta2.OCIRepository{}
+				source = &fluxsourcev1.OCIRepository{}
 			case sourceRef.FluxBucket != nil:
 				sourceName = sourceRef.FluxBucket.WithDefaultNamespace(component.Namespace)
-				source = &fluxsourcev1beta2.Bucket{}
+				source = &fluxsourcev1.Bucket{}
 			case sourceRef.FluxHelmChart != nil:
 				sourceName = sourceRef.FluxHelmChart.WithDefaultNamespace(component.Namespace)
 				source = &fluxsourcev1.HelmChart{}
