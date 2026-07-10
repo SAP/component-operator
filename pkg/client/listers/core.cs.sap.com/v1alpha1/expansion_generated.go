@@ -7,6 +7,22 @@ SPDX-License-Identifier: Apache-2.0
 
 package v1alpha1
 
+// BlueprintListerExpansion allows custom methods to be added to
+// BlueprintLister.
+type BlueprintListerExpansion interface{}
+
+// BlueprintNamespaceListerExpansion allows custom methods to be added to
+// BlueprintNamespaceLister.
+type BlueprintNamespaceListerExpansion interface{}
+
+// BlueprintVersionListerExpansion allows custom methods to be added to
+// BlueprintVersionLister.
+type BlueprintVersionListerExpansion interface{}
+
+// BlueprintVersionNamespaceListerExpansion allows custom methods to be added to
+// BlueprintVersionNamespaceLister.
+type BlueprintVersionNamespaceListerExpansion interface{}
+
 // ComponentListerExpansion allows custom methods to be added to
 // ComponentLister.
 type ComponentListerExpansion interface{}

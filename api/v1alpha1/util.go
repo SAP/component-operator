@@ -13,8 +13,8 @@ import (
 
 // TODO: consolidate all the util files into an internal reuse package
 
-func ref[T any](x T) *T {
-	return &x
+func equal[T comparable](x *T, y *T) bool {
+	return x == nil && y == nil || x != nil && y != nil && *x == *y
 }
 
 func sha256hex(data []byte) string {

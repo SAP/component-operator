@@ -1,0 +1,68 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.21.0
+  name: blueprintversions.core.cs.sap.com
+spec:
+  group: core.cs.sap.com
+  names:
+    kind: BlueprintVersion
+    listKind: BlueprintVersionList
+    plural: blueprintversions
+    singular: blueprintversion
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: BlueprintVersion is the Schema for the blueprint versions API.
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: BlueprintVersionSpec defines the desired state of BlueprintVersion.
+            properties:
+              blueprint:
+                type: string
+              digest:
+                type: string
+              files:
+                additionalProperties:
+                  type: string
+                type: object
+              revision:
+                type: string
+            required:
+            - blueprint
+            - digest
+            - revision
+            type: object
+        required:
+        - spec
+        type: object
+    selectableFields:
+    - jsonPath: .spec.blueprint
+    served: true
+    storage: true
+    subresources: {}

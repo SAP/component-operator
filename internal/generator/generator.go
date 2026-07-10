@@ -21,12 +21,16 @@ import (
 	operatorv1alpha1 "github.com/sap/component-operator/api/v1alpha1"
 )
 
-type Generator struct{}
+type Generator struct {
+	factory *Factory
+}
 
 var _ manifests.Generator = &Generator{}
 
-func NewGenerator() (*Generator, error) {
-	return &Generator{}, nil
+func NewGenerator(clnt client.Client) (*Generator, error) {
+	return &Generator{
+		factory: newFactory(clnt),
+	}, nil
 }
 
 func (g *Generator) Generate(ctx context.Context, namespace string, name string, parameters componentoperatorruntimetypes.Unstructurable) ([]client.Object, error) {
@@ -48,7 +52,7 @@ func (g *Generator) Generate(ctx context.Context, namespace string, name string,
 		decryptionKeys = spec.Decryption.SecretRef.Data()
 	}
 
-	generator, err := GetGenerator(url, path, digest, decryptionProvider, decryptionKeys)
+	generator, err := g.factory.GetGenerator(url, path, digest, decryptionProvider, decryptionKeys)
 	if err != nil {
 		return nil, err
 	}

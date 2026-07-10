@@ -7,4 +7,8 @@ SPDX-License-Identifier: Apache-2.0
 
 package v1alpha1
 
+type BlueprintExpansion interface{}
+
+type BlueprintVersionExpansion interface{}
+
 type ComponentExpansion interface{}

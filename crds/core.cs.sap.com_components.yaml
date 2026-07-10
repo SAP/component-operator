@@ -3,7 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.20.1
+    controller-gen.kubebuilder.io/version: v0.21.0
   name: components.core.cs.sap.com
 spec:
   group: core.cs.sap.com
@@ -239,6 +239,16 @@ spec:
                   Exactly one of the options must be provided. Before accessing the Artifact() method,
                   the SourceReference must be loaded by calling Load().
                 properties:
+                  blueprint:
+                    description: Reference to a Blueprint.
+                    properties:
+                      name:
+                        type: string
+                      namespace:
+                        type: string
+                    required:
+                    - name
+                    type: object
                   fluxBucket:
                     description: Reference to a flux Bucket.
                     properties:
@@ -301,19 +311,21 @@ spec:
                     type: object
                 type: object
                 x-kubernetes-validations:
-                - message: Exactly one of 'httpRepository' or 'fluxGitRepository'
+                - message: Exactly one of 'blueprint' or 'httpRepository' or 'fluxGitRepository'
                     or 'fluxOciRepository' or 'fluxBucket' or 'fluxHelmChart' must
                     be provided
-                  rule: has(self.httpRepository) && !has(self.fluxGitRepository) &&
-                    !has(self.fluxOciRepository) && !has(self.fluxBucket) && !has(self.fluxHelmChart)
-                    || !has(self.httpRepository) && has(self.fluxGitRepository) &&
-                    !has(self.fluxOciRepository) && !has(self.fluxBucket) && !has(self.fluxHelmChart)
-                    || !has(self.httpRepository) && !has(self.fluxGitRepository) &&
-                    has(self.fluxOciRepository) && !has(self.fluxBucket) && !has(self.fluxHelmChart)
-                    || !has(self.httpRepository) && !has(self.fluxGitRepository) &&
-                    !has(self.fluxOciRepository) && has(self.fluxBucket) && !has(self.fluxHelmChart)
-                    || !has(self.httpRepository) && !has(self.fluxGitRepository) &&
-                    !has(self.fluxOciRepository) && !has(self.fluxBucket) && has(self.fluxHelmChart)
+                  rule: has(self.blueprint) && !has(self.httpRepository) && !has(self.fluxGitRepository)
+                    && !has(self.fluxOciRepository) && !has(self.fluxBucket) && !has(self.fluxHelmChart)
+                    || !has(self.blueprint) && has(self.httpRepository) && !has(self.fluxGitRepository)
+                    && !has(self.fluxOciRepository) && !has(self.fluxBucket) && !has(self.fluxHelmChart)
+                    || !has(self.blueprint) && !has(self.httpRepository) && has(self.fluxGitRepository)
+                    && !has(self.fluxOciRepository) && !has(self.fluxBucket) && !has(self.fluxHelmChart)
+                    || !has(self.blueprint) && !has(self.httpRepository) && !has(self.fluxGitRepository)
+                    && has(self.fluxOciRepository) && !has(self.fluxBucket) && !has(self.fluxHelmChart)
+                    || !has(self.blueprint) && !has(self.httpRepository) && !has(self.fluxGitRepository)
+                    && !has(self.fluxOciRepository) && has(self.fluxBucket) && !has(self.fluxHelmChart)
+                    || !has(self.blueprint) && !has(self.httpRepository) && !has(self.fluxGitRepository)
+                    && !has(self.fluxOciRepository) && !has(self.fluxBucket) && has(self.fluxHelmChart)
               sticky:
                 type: boolean
               suspend:

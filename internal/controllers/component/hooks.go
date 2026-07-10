@@ -3,7 +3,7 @@ SPDX-FileCopyrightText: 2026 SAP SE or an SAP affiliate company and component-op
 SPDX-License-Identifier: Apache-2.0
 */
 
-package operator
+package component
 
 import (
 	"context"
@@ -21,6 +21,7 @@ import (
 	componentoperatorruntimetypes "github.com/sap/component-operator-runtime/pkg/types"
 
 	operatorv1alpha1 "github.com/sap/component-operator/api/v1alpha1"
+	componentcache "github.com/sap/component-operator/internal/cache/component"
 )
 
 func makeFuncPostRead() component.HookFunc[*operatorv1alpha1.Component] {
@@ -29,10 +30,10 @@ func makeFuncPostRead() component.HookFunc[*operatorv1alpha1.Component] {
 			return nil
 		}
 		if component.Spec.Digest != "" && component.Spec.SourceRef.Artifact().Digest != component.Spec.Digest {
-			return componentoperatorruntimetypes.NewRetriableError(fmt.Errorf("source digest (%s) does not match specified digest (%s)", component.Spec.SourceRef.Artifact().Digest, component.Spec.Digest), ref(10*time.Second))
+			return componentoperatorruntimetypes.NewRetriableError(fmt.Errorf("source digest (%s) does not match specified digest (%s)", component.Spec.SourceRef.Artifact().Digest, component.Spec.Digest), new(10*time.Second))
 		}
 		if component.Spec.Revision != "" && component.Spec.SourceRef.Artifact().Revision != component.Spec.Revision {
-			return componentoperatorruntimetypes.NewRetriableError(fmt.Errorf("source revision (%s) does not match specified revision (%s)", component.Spec.SourceRef.Artifact().Revision, component.Spec.Revision), ref(10*time.Second))
+			return componentoperatorruntimetypes.NewRetriableError(fmt.Errorf("source revision (%s) does not match specified revision (%s)", component.Spec.SourceRef.Artifact().Revision, component.Spec.Revision), new(10*time.Second))
 		}
 		return nil
 	}
@@ -74,9 +75,7 @@ func makeFuncPostReconcile() component.HookFunc[*operatorv1alpha1.Component] {
 func makeFuncPreDelete(cache cache.Cache) component.HookFunc[*operatorv1alpha1.Component] {
 	return func(ctx context.Context, clnt client.Client, component *operatorv1alpha1.Component) error {
 		componentList := &operatorv1alpha1.ComponentList{}
-		if err := cache.List(ctx, componentList, client.MatchingFields{
-			dependenciesIndexKey: client.ObjectKeyFromObject(component).String(),
-		}); err != nil {
+		if err := cache.List(ctx, componentList, componentcache.MatchingDependency(component)); err != nil {
 			return err
 		}
 		if len(componentList.Items) == 0 {

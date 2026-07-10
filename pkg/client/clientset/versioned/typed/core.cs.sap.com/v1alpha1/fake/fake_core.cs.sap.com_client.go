@@ -17,6 +17,14 @@ type FakeCoreV1alpha1 struct {
 	*testing.Fake
 }
 
+func (c *FakeCoreV1alpha1) Blueprints(namespace string) v1alpha1.BlueprintInterface {
+	return newFakeBlueprints(c, namespace)
+}
+
+func (c *FakeCoreV1alpha1) BlueprintVersions(namespace string) v1alpha1.BlueprintVersionInterface {
+	return newFakeBlueprintVersions(c, namespace)
+}
+
 func (c *FakeCoreV1alpha1) Components(namespace string) v1alpha1.ComponentInterface {
 	return newFakeComponents(c, namespace)
 }

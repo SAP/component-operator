@@ -15,29 +15,23 @@ import (
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/controller"
 
-	fluxevents "github.com/fluxcd/pkg/runtime/events"
 	fluxsourcev1 "github.com/fluxcd/source-controller/api/v1"
-	fluxsourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
-	fluxsourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 
-	"github.com/sap/component-operator-runtime/pkg/cluster"
-	"github.com/sap/component-operator-runtime/pkg/component"
 	"github.com/sap/component-operator-runtime/pkg/operator"
-	"github.com/sap/component-operator-runtime/pkg/reconciler"
 
 	operatorv1alpha1 "github.com/sap/component-operator/api/v1alpha1"
-	"github.com/sap/component-operator/internal/generator"
-	flux "github.com/sap/component-operator/internal/sources/flux/cache"
-	httprepository "github.com/sap/component-operator/internal/sources/httprepository/checker"
+	componentcache "github.com/sap/component-operator/internal/cache/component"
+	blueprintcontroller "github.com/sap/component-operator/internal/controllers/blueprint"
+	componentcontroller "github.com/sap/component-operator/internal/controllers/component"
+	"github.com/sap/component-operator/internal/httprepository"
+	"github.com/sap/component-operator/pkg/meta"
 )
 
 // TODO: write some logs (e.g. in the hooks)
 // TODO: use source digest instead of (resp. in parallel to) source revision
 
 const (
-	Name                    = "component-operator.cs.sap.com"
 	MaxConcurrentReconciles = 5
 )
 
@@ -86,7 +80,7 @@ func New() *Operator {
 func NewWithOptions(options Options) *Operator {
 	operator := &Operator{options: options}
 	if operator.options.Name == "" {
-		operator.options.Name = Name
+		operator.options.Name = meta.Name
 	}
 	if operator.options.MaxConcurrentReconciles == 0 {
 		operator.options.MaxConcurrentReconciles = MaxConcurrentReconciles
@@ -101,8 +95,6 @@ func (o *Operator) GetName() string {
 func (o *Operator) InitScheme(scheme *runtime.Scheme) {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 	utilruntime.Must(operatorv1alpha1.AddToScheme(scheme))
-	utilruntime.Must(fluxsourcev1beta1.AddToScheme(scheme))
-	utilruntime.Must(fluxsourcev1beta2.AddToScheme(scheme))
 	utilruntime.Must(fluxsourcev1.AddToScheme(scheme))
 }
 
@@ -117,59 +109,33 @@ func (o *Operator) ValidateFlags() error {
 }
 
 func (o *Operator) GetUncacheableTypes() []client.Object {
-	return []client.Object{&operatorv1alpha1.Component{}}
+	return []client.Object{&operatorv1alpha1.Component{}, &operatorv1alpha1.Blueprint{}, &operatorv1alpha1.BlueprintVersion{}}
 }
 
 func (o *Operator) Setup(mgr ctrl.Manager) error {
-	blder := ctrl.NewControllerManagedBy(mgr).
-		WithOptions(controller.Options{MaxConcurrentReconciles: o.options.MaxConcurrentReconciles})
-
-	if err := setupCache(mgr, blder); err != nil {
-		return errors.Wrap(err, "error registering component resource")
-	}
-	if err := flux.SetupCache(mgr, blder); err != nil {
-		return errors.Wrap(err, "error registering flux resources")
+	if err := componentcache.SetupWithManager(mgr); err != nil {
+		return errors.Wrap(err, "error configuring component cache")
 	}
 
-	resourceGenerator, err := generator.NewGenerator()
+	componentReconciler, err := componentcontroller.SetupWithManager(mgr, componentcontroller.ReconcilerOptions{
+		Name:                    o.options.Name,
+		DefaultServiceAccount:   o.options.DefaultServiceAccount,
+		MaxConcurrentReconciles: o.options.MaxConcurrentReconciles,
+		EventsAddress:           o.options.EventsAddress,
+	})
 	if err != nil {
-		return errors.Wrap(err, "error initializing resource generator")
+		return errors.Wrapf(err, "error registering component controller")
 	}
 
-	newClient := func(clnt cluster.Client) (cluster.Client, error) {
-		if o.options.EventsAddress == "" {
-			return clnt, nil
-		}
-		eventRecorder, err := fluxevents.NewRecorderForScheme(clnt.Scheme(), clnt.EventRecorder(), mgr.GetLogger(), o.options.EventsAddress, o.options.Name)
-		if err != nil {
-			return nil, errors.Wrap(err, "error initializing wrapping event recorder")
-		}
-		return cluster.NewClient(clnt, clnt.DiscoveryClient(), eventRecorder, clnt.Config(), clnt.HttpClient()), nil
+	if err := blueprintcontroller.SetupWithManager(mgr, blueprintcontroller.ReconcilerOptions{
+		Name: o.options.Name,
+	}); err != nil {
+		return errors.Wrapf(err, "error registering blueprint controller")
 	}
 
-	reconciler := component.NewReconciler[*operatorv1alpha1.Component](
-		o.options.Name,
-		resourceGenerator,
-		component.ReconcilerOptions{
-			DefaultServiceAccount: &o.options.DefaultServiceAccount,
-			UpdatePolicy:          ref(reconciler.UpdatePolicySsaOverride),
-			NewClient:             newClient,
-		},
-	).WithPostReadHook(
-		makeFuncPostRead(),
-	).WithPreReconcileHook(
-		makeFuncPreReconcile(mgr.GetCache()),
-	).WithPostReconcileHook(
-		makeFuncPostReconcile(),
-	).WithPreDeleteHook(
-		makeFuncPreDelete(mgr.GetCache()),
-	)
-
-	if err := reconciler.SetupWithManagerAndBuilder(mgr, blder); err != nil {
-		return errors.Wrapf(err, "unable to create controller")
+	if err := httprepository.SetupWithManager(mgr, componentReconciler); err != nil {
+		return errors.Wrapf(err, "error registering http repository checker")
 	}
-
-	mgr.Add(httprepository.NewChecker(mgr.GetCache(), reconciler, mgr.GetLogger()))
 
 	return nil
 }
