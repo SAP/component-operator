@@ -3,9 +3,9 @@ title: "Component Operator"
 ---
 
 {{< rawhtml >}}
-<div class="hero-section" style="background-image: linear-gradient(rgba(0, 31, 63, 0.7), rgba(0, 61, 122, 0.7)), url('/images/background.png'); background-size: cover; background-position: center; background-repeat: no-repeat; min-height: 100vh; display: flex; align-items: center; justify-content: center; text-align: center; position: relative; width: 100vw; margin-left: calc(-50vw + 50%); margin-right: calc(-50vw + 50%); padding: 20px;">
+<div class="hero-section" style="background-image: linear-gradient(rgba(0, 31, 63, 0.7), rgba(0, 61, 122, 0.7)), url('images/background.png'); background-size: cover; background-position: center; background-repeat: no-repeat; min-height: 100vh; display: flex; align-items: center; justify-content: center; text-align: center; position: relative; width: 100vw; margin-left: calc(-50vw + 50%); margin-right: calc(-50vw + 50%); padding: 20px;">
   <div class="hero-content" style="position: relative; z-index: 1;">
-    <img src="/images/logo.png" alt="Component Operator Logo" style="max-width: 200px; height: auto; margin: 0 auto 2rem auto; display: block;">
+    <img src="images/logo.png" alt="Component Operator Logo" style="max-width: 200px; height: auto; margin: 0 auto 2rem auto; display: block;">
     <h1 style="color: #ffffff; font-size: 3.5rem; font-weight: 700; margin-bottom: 1.5rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
       Component Operator
     </h1>
