@@ -20,8 +20,6 @@ Thumbs.db
 
 # Node modules (if using npm/yarn for asset processing)
 node_modules/
-package-lock.json
-yarn.lock
 
 # Logs
 *.log

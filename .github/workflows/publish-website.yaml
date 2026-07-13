@@ -24,9 +24,15 @@ jobs:
   build:
     runs-on: ubuntu-24.04
     env:
+      NODE_VERSION: 25
       HUGO_VERSION: 0.164.0
 
     steps:
+    - name: Setup Node
+      uses: actions/setup-node@v6
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+
     - name: Install Hugo
       run: |
         wget -O ${{ runner.temp }}/hugo.deb https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_linux-amd64.deb \
@@ -46,26 +52,14 @@ jobs:
       id: pages
       uses: actions/configure-pages@v6
 
-    # - name: Get node version from package.json
-    #   id: get_node_version
-    #   run: |
-    #     node_version=$(cat package.json | jq -r '.dependencies.node')
-    #     echo "node_version=${node_version}" >> $GITHUB_OUTPUT
-
-    # - name: Setup Node
-    #   uses: actions/setup-node@v6
-    #   with:
-    #     node-version: ${{ steps.get_node_version.outputs.node_version }}
-
-    # - name: Update dependencies
-    #   run: |
-    #     npm ci
-    #     cd themes/docsy
-    #     npm install
+    - name: Update dependencies
+      run: |
+        npm ci
 
     - name: Build with Hugo
       run: |
         hugo \
+          --environment production \
           --gc \
           --minify \
           --baseURL "${{ steps.pages.outputs.base_url }}/"            
