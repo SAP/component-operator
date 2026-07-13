@@ -1,7 +1,7 @@
 ---
 title: "Community"
 linkTitle: "Community"
-weight: 6
+weight: 7
 description: >
   How to get support and how to contribute to Component Operator
 ---

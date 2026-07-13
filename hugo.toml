@@ -14,6 +14,12 @@ proxy = "direct"
     style = "vs"
 
 [[menu.main]]
+  name = "Community"
+  weight = 8
+  url = "docs/community"
+  pre = "<i class='fa-regular fa-handshake'></i>"
+
+[[menu.main]]
   name = "Source"
   weight = 9
   url = "https://github.com/sap/component-operator"

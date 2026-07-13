@@ -14,27 +14,35 @@ title: "Component Operator"
       Manage Kubernetes Components Consistently
     </p>
     
-    <div class="hero-tiles-container" style="display: flex; align-items: center; justify-content: center; gap: 1.5rem; max-width: 1400px; margin: 0 auto 4rem auto;">
-      <div class="hero-tile" onclick="openSourcesModal()" style="background: linear-gradient(135deg, #ffffff 0%, #f0f8ff 100%); border-radius: 12px; padding: 2.5rem 2rem; box-shadow: 0 8px 16px rgba(0, 31, 63, 0.15); text-align: center; border: 2px solid rgba(0, 61, 122, 0.2); transition: all 0.3s ease; flex: 1; height: 180px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
-        <p style="color: #001f3f; font-size: 1.25rem; font-weight: 500; line-height: 1.6; margin: 0;">Use existing Helm Charts and Kustomizations</p>
+    <div class="hero-tiles-container" style="display: flex; align-items: stretch; justify-content: center; gap: 1.5rem; max-width: 1400px; margin: 0 auto 4rem auto;">
+      <div class="hero-tile" onclick="openSourcesModal()" style="background: linear-gradient(135deg, #ffffff 0%, #f0f8ff 100%); border-radius: 12px; padding: 2rem 1.75rem; box-shadow: 0 8px 16px rgba(0, 31, 63, 0.15); text-align: center; border: 2px solid rgba(0, 61, 122, 0.2); transition: all 0.3s ease; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; cursor: pointer; gap: 0.6rem;">
+        <i class="fa-solid fa-puzzle-piece" style="color: #003d7a; font-size: 2rem; margin-bottom: 0.25rem;"></i>
+        <h3 style="color: #001f3f; font-size: 1.3rem; font-weight: 700; margin: 0;">Start Compatible</h3>
+        <p style="color: #001f3f; font-size: 1rem; font-weight: 400; line-height: 1.6; margin: 0;">Use existing Helm Charts and Kustomizations</p>
       </div>
       
-      <i class="fa-solid fa-circle-chevron-right" style="color: #e0f2ff; font-size: 2.5rem; flex-shrink: 0;"></i>
+      <i class="fa-solid fa-circle-chevron-right" style="color: #e0f2ff; font-size: 2.5rem; flex-shrink: 0; align-self: center;"></i>
       
-      <div class="hero-tile" onclick="openTemplateModal()" style="background: linear-gradient(135deg, #ffffff 0%, #f0f8ff 100%); border-radius: 12px; padding: 2.5rem 2rem; box-shadow: 0 8px 16px rgba(0, 31, 63, 0.15); text-align: center; border: 2px solid rgba(0, 61, 122, 0.2); transition: all 0.3s ease; flex: 1; height: 180px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
-        <p style="color: #001f3f; font-size: 1.25rem; font-weight: 500; line-height: 1.6; margin: 0;">Boost your manifests using enhanced template syntax and reflexivity</p>
+      <div class="hero-tile" onclick="openTemplateModal()" style="background: linear-gradient(135deg, #ffffff 0%, #f0f8ff 100%); border-radius: 12px; padding: 2rem 1.75rem; box-shadow: 0 8px 16px rgba(0, 31, 63, 0.15); text-align: center; border: 2px solid rgba(0, 61, 122, 0.2); transition: all 0.3s ease; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; cursor: pointer; gap: 0.6rem;">
+        <i class="fa-solid fa-wand-magic-sparkles" style="color: #003d7a; font-size: 2rem; margin-bottom: 0.25rem;"></i>
+        <h3 style="color: #001f3f; font-size: 1.3rem; font-weight: 700; margin: 0;">Improve Manifests</h3>
+        <p style="color: #001f3f; font-size: 1rem; font-weight: 400; line-height: 1.6; margin: 0;">Boost your manifests using enhanced template syntax and reflexivity</p>
       </div>
       
-      <i class="fa-solid fa-circle-chevron-right" style="color: #e0f2ff; font-size: 2.5rem; flex-shrink: 0;"></i>
+      <i class="fa-solid fa-circle-chevron-right" style="color: #e0f2ff; font-size: 2.5rem; flex-shrink: 0; align-self: center;"></i>
       
-      <div class="hero-tile" onclick="openGitOpsModal()" style="background: linear-gradient(135deg, #ffffff 0%, #f0f8ff 100%); border-radius: 12px; padding: 2.5rem 2rem; box-shadow: 0 8px 16px rgba(0, 31, 63, 0.15); text-align: center; border: 2px solid rgba(0, 61, 122, 0.2); transition: all 0.3s ease; flex: 1; cursor: pointer; height: 180px; display: flex; align-items: center; justify-content: center;">
-        <p style="color: #001f3f; font-size: 1.25rem; font-weight: 500; line-height: 1.6; margin: 0;">Embrace GitOps: use FluxCD to distribute your manifests. Or use our in-cluster Blueprints</p>
+      <div class="hero-tile" onclick="openGitOpsModal()" style="background: linear-gradient(135deg, #ffffff 0%, #f0f8ff 100%); border-radius: 12px; padding: 2rem 1.75rem; box-shadow: 0 8px 16px rgba(0, 31, 63, 0.15); text-align: center; border: 2px solid rgba(0, 61, 122, 0.2); transition: all 0.3s ease; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; cursor: pointer; gap: 0.6rem;">
+        <i class="fa-solid fa-code-branch" style="color: #003d7a; font-size: 2rem; margin-bottom: 0.25rem;"></i>
+        <h3 style="color: #001f3f; font-size: 1.3rem; font-weight: 700; margin: 0;">Integrate with GitOps</h3>
+        <p style="color: #001f3f; font-size: 1rem; font-weight: 400; line-height: 1.6; margin: 0;">Embrace GitOps: use FluxCD to distribute your manifests. Or use our in-cluster Blueprints</p>
       </div>
       
-      <i class="fa-solid fa-circle-chevron-right" style="color: #e0f2ff; font-size: 2.5rem; flex-shrink: 0;"></i>
+      <i class="fa-solid fa-circle-chevron-right" style="color: #e0f2ff; font-size: 2.5rem; flex-shrink: 0; align-self: center;"></i>
       
-      <div class="hero-tile" onclick="openControlModal()" style="background: linear-gradient(135deg, #ffffff 0%, #f0f8ff 100%); border-radius: 12px; padding: 2.5rem 2rem; box-shadow: 0 8px 16px rgba(0, 31, 63, 0.15); text-align: center; border: 2px solid rgba(0, 61, 122, 0.2); transition: all 0.3s ease; flex: 1; height: 180px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
-        <p style="color: #001f3f; font-size: 1.25rem; font-weight: 500; line-height: 1.6; margin: 0;">Have maximum control on how rendered resources are applied to Kubernetes</p>
+      <div class="hero-tile" onclick="openControlModal()" style="background: linear-gradient(135deg, #ffffff 0%, #f0f8ff 100%); border-radius: 12px; padding: 2rem 1.75rem; box-shadow: 0 8px 16px rgba(0, 31, 63, 0.15); text-align: center; border: 2px solid rgba(0, 61, 122, 0.2); transition: all 0.3s ease; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; cursor: pointer; gap: 0.6rem;">
+        <i class="fa-solid fa-sliders" style="color: #003d7a; font-size: 2rem; margin-bottom: 0.25rem;"></i>
+        <h3 style="color: #001f3f; font-size: 1.3rem; font-weight: 700; margin: 0;">Control Deployments</h3>
+        <p style="color: #001f3f; font-size: 1rem; font-weight: 400; line-height: 1.6; margin: 0;">Have maximum control on how rendered resources are applied to Kubernetes</p>
       </div>
     </div>
     
@@ -406,39 +414,39 @@ document.addEventListener('keydown', function(event) {
 
 <div id="features" class="feature-tiles">
   <a href="docs/getting-started/" class="tile">
-    <div class="tile-icon">🚀</div>
+    <div class="tile-icon"><i class="fa-solid fa-rocket"></i></div>
     <h3>Quick Start</h3>
     <p>Get started with Component Operator in minutes. Deploy and manage your first Kubernetes component with ease.</p>
   </a>
   
   <a href="docs/installation/" class="tile">
-    <div class="tile-icon">📥</div>
+    <div class="tile-icon"><i class="fa-solid fa-download"></i></div>
     <h3>Installation</h3>
     <p>Learn how to install Component Operator in your Kubernetes cluster. Step-by-step installation instructions and requirements.</p>
   </a>
   
   <a href="docs/configuration" class="tile">
-    <div class="tile-icon">⚙️</div>
+    <div class="tile-icon"><i class="fa-solid fa-sliders"></i></div>
     <h3>Configuration</h3>
     <p>Learn how to configure and tune Component Operator.</p>
   </a>
   
+  <a href="docs/usage" class="tile">
+    <div class="tile-icon"><i class="fa-solid fa-book-open"></i></div>
+    <h3>Usage</h3>
+    <p>Learn how to create, tune and ship manifests and how to declare components.</p>
+  </a>
+
   <a href="docs/reference" class="tile">
-    <div class="tile-icon">🔧</div>
+    <div class="tile-icon"><i class="fa-solid fa-file-code"></i></div>
     <h3>Reference</h3>
     <p>Explore the full API reference.</p>
   </a>
   
   <a href="docs/tutorials" class="tile">
-    <div class="tile-icon">💡</div>
+    <div class="tile-icon"><i class="fa-solid fa-graduation-cap"></i></div>
     <h3>Tutorials and Examples</h3>
     <p>Browse practical examples and use cases to see Component Operator in action across different scenarios.</p>
-  </a>
-  
-  <a href="docs/community" class="tile">
-    <div class="tile-icon">🤝</div>
-    <h3>Community</h3>
-    <p>Join our community, contribute to the project, and get support from fellow Component Operator users.</p>
   </a>
 </div>
 {{< /rawhtml >}}
