@@ -22,7 +22,7 @@ If `spec.timeout` is not set, it defaults to the effective requeue interval.
 ## Requeue and Retry Intervals
 
 - `spec.requeueInterval`: period between re-reconciliations after success (default: 10 minutes).
-- `spec.retryInterval`: period between re-reconciliations after a retriable error (default: equals the effective requeue interval). For details on what constitutes a retriable error, see the [component-operator-runtime documentation](https://sap.github.io/component-operator-runtime/docs/concepts/reconciler/#tuning-the-retry-behavior).
+- `spec.retryInterval`: period between re-reconciliations after a retriable error (default: equals the effective requeue interval). For details on what constitutes a retriable error, see the [component-operator-runtime documentation](https://sap.github.io/component-operator-runtime/docs/concepts/reconciler/#tuning-the-retry-behavior). In case of non-retriable errors, the default controller-runtime error backoff applies.
 
 ## Stickiness
 
