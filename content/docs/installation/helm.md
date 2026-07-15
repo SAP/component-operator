@@ -29,7 +29,7 @@ Refer to the [chart documentation](https://github.com/SAP/component-operator/tre
 
 Note: if you want to deploy component-operator into a different namespace (instead of flux-system), then you have to allow the component-operator pod to access the source-controller running flux-system.
 
-The easy way is to install flux with the `--network-policy=false` option. However this is not recommended because it allows all workloads in the cluster to access flux-system. Better is to create an explicit network policy, such as
+The easy way is to install flux with the `--network-policy=false` option. However this is not recommended because it allows all workloads in the cluster to access flux-system. The better option is to create an explicit network policy, such as
 
 ```yaml
 ---

@@ -81,6 +81,9 @@ In addition to all [sprig](http://masterminds.github.io/sprig) functions and the
 | `readFile` | Read a file relative to `spec.path` |
 | `kubernetesVersion` | Return Kubernetes version details of the deployment target |
 | `apiResources` | Return API discovery information of the deployment target |
+| `componentDigest` | Returns the digest of the component, considering spec, annotations, and references, such as secrets |
+| `componentRevision` | Returns the revision of the component; that is, a counter that is increased whenever the `componentDigest` changes |
+| `component` | Returns the current component object as a whole, as golang struct |
 
 The `lookup` / `mustLookup` functions use the **target** client (the cluster where dependent objects are deployed), while `localLookup` / `mustLocalLookup` use the **local** client (the cluster where the controller runs). See [Impersonation and Remote Clusters](../impersonation) for implications when a `kubeConfig` is provided.
 

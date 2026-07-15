@@ -116,8 +116,8 @@ spec:
   sourceRef:
     fluxGitRepository:
       name: my-gitrepo
-  revision: {% component.Status.LastAttemptedRevision %}
-  digest: {% component.Status.LastAttemptedDigest %}
+  revision: {{ component.Status.LastAttemptedRevision }}
+  digest: {{ component.Status.LastAttemptedDigest }}
 ```
 
 Here, `component` is a template function (available with the extended template syntax) returning the current object state of the owning component. As a consequence, the sub-component is forced to reconcile the digest or revision of the owning component, avoiding that the owning component goes through, observing an outdated previous ready state of the subcomponent.

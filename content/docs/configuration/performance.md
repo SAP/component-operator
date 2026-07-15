@@ -30,15 +30,15 @@ As a rough guideline:
 
 ## Kubernetes API Server Load
 
-Our experience shows that you can roughly calculate with 0.1 Kubernetes API server per second.
+Our experience shows that you can roughly calculate with 0.1 Kubernetes API server requests per component and second.
 
-Where there typically are peaks when this rate increases by a factor of 5-10. 
+Typically peaks are occurring regularly (every couple of minutes) where this rate increases by a factor of 5-10 for a short period.
 
 But of course, the number of API server calls depends heavily on
 - The complexity of your components; for example, declaring dependencies leads to an increased activity, because reconciliations of components trigger the reconciliation of other components. Also components doing many lookups into the cluster require more API calls.
 - How the intervals (`spec.requeueInterval` and `spec.retryInterval`) are set.
 - How many real changes are applied.
-- How many components are in error state; erroneous components produce more API server load. 
+- How many components are in error state; erroneous components produce more API server load.
 
 ## Memory and CPU
 
