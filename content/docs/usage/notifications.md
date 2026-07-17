@@ -24,17 +24,17 @@ To fully leverage Flux notifications — including the ability to create `Alert`
 
 Apply the following JSON Patch to the Alert CRD:
 
-```yaml
-- op: add
-  path: /spec/versions/0/schema/openAPIV3Schema/properties/spec/properties/eventSources/items/properties/kind/enum/-
-  value: Component
-- op: add
-  path: /spec/versions/1/schema/openAPIV3Schema/properties/spec/properties/eventSources/items/properties/kind/enum/-
-  value: Component
-- op: add
-  path: /spec/versions/2/schema/openAPIV3Schema/properties/spec/properties/eventSources/items/properties/kind/enum/-
-  value: Component
+```json
+[
+  {
+    "op": "add",
+    "path": "/spec/versions/0/schema/openAPIV3Schema/properties/spec/properties/eventSources/items/properties/kind/enum/-",
+    "value": "Component"
+  }
+]
 ```
+
+**Caveat:** in some older versions, the Alert CRD contained more versions. Adjust the patch according to your Flux version.
 
 Once patched, you can create Flux `Alert` objects referencing `Component` resources as event sources, for example:
 
