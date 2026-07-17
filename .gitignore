@@ -27,3 +27,6 @@ node_modules/
 # Local configuration
 .env
 .env.local
+
+# Temporary stuff
+/tmp
