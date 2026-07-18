@@ -226,4 +226,4 @@ Error from server (NotFound): components.core.cs.sap.com "cert-manager" not foun
 ```
 
 The component, its deployments, RBAC resources, and all other dependent objects have been fully removed from the cluster.
-Not that the CRD objects themselves are still there because the cert-manager maintainers decided to set the `helm.sh/resource-policy: keep` annotation on the CRDs, which makes component-operator orphan them on deletion. If they wouldn't have it done this way, and shipped the CRDs in the usual way via the chart's ./crds subdirectory, the CRDs would have been removed here as well.
+Note that the CRD objects themselves are still there because the cert-manager maintainers decided to set the `helm.sh/resource-policy: keep` annotation on the CRDs, which makes component-operator orphan them on deletion. If they wouldn't have it done this way, and shipped the CRDs in the usual way via the chart's ./crds subdirectory, the CRDs would have been removed here as well.
