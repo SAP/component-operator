@@ -7,14 +7,18 @@ package generator
 
 import (
 	"archive/tar"
+	"archive/zip"
 	"bytes"
+	"compress/bzip2"
 	"compress/gzip"
 	"context"
 	"errors"
 	"fmt"
 	"io"
 	"io/fs"
+	"mime"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -31,6 +35,18 @@ import (
 
 	operatorv1alpha1 "github.com/sap/component-operator/api/v1alpha1"
 	"github.com/sap/component-operator/internal/decrypt"
+)
+
+const (
+	headerContentType = "Content-Type"
+
+	compressionTypeGzip  = "gz"
+	compressionTypeBzip2 = "bz2"
+
+	archiveTypeTar = "tar"
+	archiveTypeZip = "zip"
+
+	fileTypeYaml = "yaml"
 )
 
 type Item struct {
@@ -108,7 +124,7 @@ func (f *Factory) GetGenerator(url string, path string, digest string, decryptio
 				return nil, err
 			}
 		} else {
-			if err := f.downloadArchive(url, tmpdir); err != nil {
+			if err := f.downloadUrl(url, tmpdir); err != nil {
 				return nil, err
 			}
 		}
@@ -179,7 +195,7 @@ func (f *Factory) downloadBlueprint(url string, targetPath string) error {
 	}
 }
 
-func (f *Factory) downloadArchive(url string, targetPath string) error {
+func (f *Factory) downloadUrl(url string, targetPath string) error {
 	// TODO: use a local or even global file cache
 	resp, err := http.Get(url)
 	if err != nil {
@@ -189,53 +205,133 @@ func (f *Factory) downloadArchive(url string, targetPath string) error {
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("error downloading %s: %s", url, resp.Status)
 	}
-
-	gzipReader, err := gzip.NewReader(resp.Body)
+	contentType, _, err := mime.ParseMediaType(resp.Header.Get(headerContentType))
 	if err != nil {
 		return err
 	}
-	defer gzipReader.Close()
 
-	tarReader := tar.NewReader(gzipReader)
-	for {
-		header, err := tarReader.Next()
-		if err == io.EOF {
-			break
-		}
+	compressionType, archiveType, fileType := analyzeResponse(contentType, resp.Request.URL)
+
+	var reader io.Reader
+
+	switch compressionType {
+	case compressionTypeGzip:
+		gzipReader, err := gzip.NewReader(resp.Body)
 		if err != nil {
 			return err
 		}
-		if header.Name == "." {
-			continue
-		}
-		if filepath.IsAbs(header.Name) {
-			return fmt.Errorf("archive must not contain entries with absolute paths (%s)", header.Name)
-		}
-		path := filepath.Clean(header.Name)
-		fullPath := filepath.Join(targetPath, path)
-		switch header.Typeflag {
-		case tar.TypeDir:
-			if err := os.MkdirAll(fullPath, 0755); err != nil {
-				return err
+		defer gzipReader.Close()
+		reader = gzipReader
+	case compressionTypeBzip2:
+		reader = bzip2.NewReader(resp.Body)
+	default:
+		reader = resp.Body
+	}
+
+	switch archiveType {
+	case archiveTypeTar:
+		tarReader := tar.NewReader(reader)
+		for {
+			header, err := tarReader.Next()
+			if err == io.EOF {
+				break
 			}
-		case tar.TypeReg:
-			if err := os.MkdirAll(filepath.Dir(fullPath), 0755); err != nil {
-				return err
-			}
-			outFile, err := os.Create(fullPath)
 			if err != nil {
 				return err
 			}
-			if err := func() error {
-				defer outFile.Close()
-				_, err := io.Copy(outFile, tarReader)
-				return err
-			}(); err != nil {
-				return err
+			if header.Name == "." {
+				continue
 			}
-		default:
-			return fmt.Errorf("encountered unknown tar type while downloading URL: %v in %s", header.Typeflag, path)
+			if filepath.IsAbs(header.Name) {
+				return fmt.Errorf("archive must not contain entries with absolute paths (%s)", header.Name)
+			}
+			path := filepath.Clean(header.Name)
+			fullPath := filepath.Join(targetPath, path)
+			switch header.Typeflag {
+			case tar.TypeDir:
+				if err := os.MkdirAll(fullPath, 0755); err != nil {
+					return err
+				}
+			case tar.TypeReg:
+				if err := os.MkdirAll(filepath.Dir(fullPath), 0755); err != nil {
+					return err
+				}
+				outFile, err := os.Create(fullPath)
+				if err != nil {
+					return err
+				}
+				if err := func() error {
+					defer outFile.Close()
+					_, err := io.Copy(outFile, tarReader)
+					return err
+				}(); err != nil {
+					return err
+				}
+			default:
+				return fmt.Errorf("encountered unknown tar type while downloading URL: %v in %s", header.Typeflag, path)
+			}
 		}
+	case archiveTypeZip:
+		// TODO: check max content length to avoid out-of-memory errors
+		buf, err := io.ReadAll(reader)
+		if err != nil {
+			return err
+		}
+		zipReader, err := zip.NewReader(bytes.NewReader(buf), int64(len(buf)))
+		if err != nil {
+			return err
+		}
+		for _, file := range zipReader.File {
+			path := filepath.Clean(file.Name)
+			fullPath := filepath.Join(targetPath, path)
+			switch {
+			case file.FileInfo().Mode().IsDir():
+				if err := os.MkdirAll(fullPath, 0755); err != nil {
+					return err
+				}
+			case file.FileInfo().Mode().IsRegular():
+				if err := os.MkdirAll(filepath.Dir(fullPath), 0755); err != nil {
+					return err
+				}
+				fileReader, err := file.Open()
+				if err != nil {
+					return err
+				}
+				if err := func() error {
+					defer fileReader.Close()
+					outFile, err := os.Create(fullPath)
+					if err != nil {
+						return err
+					}
+					return func() error {
+						defer outFile.Close()
+						_, err := io.Copy(outFile, fileReader)
+						return err
+					}()
+				}(); err != nil {
+					return err
+				}
+			default:
+				return fmt.Errorf("encountered unknown zip type while downloading URL: %v in %s", file.FileInfo().Mode(), path)
+			}
+		}
+	case "":
+		if fileType != fileTypeYaml {
+			return fmt.Errorf("invalid file type for URL (expect yaml)")
+		}
+		outFile, err := os.Create(filepath.Join(targetPath, "resources.yaml"))
+		if err != nil {
+			return err
+		}
+		if err := func() error {
+			defer outFile.Close()
+			_, err := io.Copy(outFile, reader)
+			return err
+		}(); err != nil {
+			return err
+		}
+	default:
+		panic("this cannot happen")
 	}
 
 	return nil
@@ -266,4 +362,52 @@ func decryptDirectory(root *os.Root, path string, decryptor manifests.Decryptor)
 		}
 		return nil
 	})
+}
+
+func analyzeResponse(contentType string, url *url.URL) (string, string, string) {
+	switch contentType {
+	case "application/gzip", "application/x-gzip":
+		if strings.HasSuffix(url.Path, ".tar.gz") || strings.HasSuffix(url.Path, ".tgz") {
+			return compressionTypeGzip, archiveTypeTar, ""
+		} else {
+			return compressionTypeGzip, "", ""
+		}
+	case "application/bzip2", "application/x-bzip2":
+		if strings.HasSuffix(url.Path, ".tar.bz2") {
+			return compressionTypeBzip2, archiveTypeTar, ""
+		} else {
+			return compressionTypeBzip2, "", ""
+		}
+	case "application/tar", "application/x-tar":
+		return "", archiveTypeTar, ""
+	case "application/tar+gzip", "application/x-tar+gzip":
+		return compressionTypeGzip, archiveTypeTar, ""
+	case "application/tar+bzip2", "application/x-tar+bzip2":
+		return compressionTypeBzip2, archiveTypeTar, ""
+	case "application/zip", "application/x-zip":
+		return "", archiveTypeZip, ""
+	case "application/yaml+gzip", "application/x-yaml+gzip", "text/yaml+gzip", "text/x-yaml+gzip":
+		return compressionTypeGzip, "", fileTypeYaml
+	case "application/yaml+bzip2", "application/x-yaml+bzip2", "text/yaml+bzip2", "text/x-yaml+bzip2":
+		return compressionTypeBzip2, "", fileTypeYaml
+	}
+
+	switch {
+	case strings.HasSuffix(url.Path, ".tar.gz") || strings.HasSuffix(url.Path, ".tgz"):
+		return compressionTypeGzip, archiveTypeTar, ""
+	case strings.HasSuffix(url.Path, ".tar.bz2"):
+		return compressionTypeBzip2, archiveTypeTar, ""
+	case strings.HasSuffix(url.Path, ".tar"):
+		return "", archiveTypeTar, ""
+	case strings.HasSuffix(url.Path, ".zip"):
+		return "", archiveTypeZip, ""
+	case strings.HasSuffix(url.Path, ".yaml.gz") || strings.HasSuffix(url.Path, ".yml.gz"):
+		return compressionTypeGzip, "", fileTypeYaml
+	case strings.HasSuffix(url.Path, ".yaml.bz2") || strings.HasSuffix(url.Path, ".yml.bz2"):
+		return compressionTypeBzip2, "", fileTypeYaml
+	case strings.HasSuffix(url.Path, ".yaml") || strings.HasSuffix(url.Path, ".yml"):
+		return "", "", fileTypeYaml
+	}
+
+	return "", "", ""
 }
