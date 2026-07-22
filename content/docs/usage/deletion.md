@@ -44,6 +44,6 @@ spec:
 
 With `additionalManagedTypes` declared, component-operator applies the same foreign-instance blocking logic to these types: the component will not be deleted while foreign instances of the declared types exist. Wildcards can be used as follows:
 - The kind can be provided as  `*`, which matches any value.
-- The group can `*` (matching any value) or have the form `*.suffix`; in this case, the asterisk matches one or multiple DNS labels.
+- The group can be `*` (matching any value) or have the form `*.suffix`; in this case, the asterisk matches one or multiple DNS labels.
 
 
