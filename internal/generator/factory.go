@@ -114,7 +114,7 @@ func (f *Factory) GetGenerator(url string, path string, digest string, decryptio
 		}
 		fullPath := filepath.Join(tmpdir, path)
 		if info, err := os.Stat(fullPath); err != nil {
-			if os.IsNotExist(err) {
+			if errors.Is(err, fs.ErrNotExist) {
 				return nil, fmt.Errorf("no such file or directory: %s", path)
 			} else {
 				return nil, err
