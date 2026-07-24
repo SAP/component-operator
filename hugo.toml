@@ -32,7 +32,7 @@ proxy = "direct"
   pre = "<i class='fas fa-book me-1'></i>"
 
 [params]
-  github_repo = "https://github.com/sap/componeont-operator"
+  github_repo = "https://github.com/sap/component-operator"
   github_branch = "website"
   offlineSearch = true
   copyright = "SAP Cloud Solutions - DevOps"
