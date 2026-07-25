@@ -41,5 +41,5 @@ Files can contain:
 ## Related Resources
 
 - [Component API Reference](./component)
-- [Kustomize Generator Documentation](https://sap.github.io/component-operator-runtime/docs/generators/kustomize/)
-- [Helm Generator Documentation](https://sap.github.io/component-operator-runtime/docs/generators/helm/)
+- [Kustomize Generator Documentation](https://sap.github.io/component-operator-runtime/docs/concepts/controller-runtime/generators/kustomize/)
+- [Helm Generator Documentation](https://sap.github.io/component-operator-runtime/docs/concepts/controller-runtime/generators/helm/)

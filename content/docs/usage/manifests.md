@@ -10,8 +10,8 @@ The files making up a component's manifests are provided by the configured [sour
 
 Component-operator automatically determines how to render the manifests based on the contents of that directory:
 
-- If a `Chart.yaml` file exists in `spec.path`, the content is rendered as a **Helm chart** using the [HelmGenerator](https://sap.github.io/component-operator-runtime/docs/generators/helm/).
-- Otherwise, the [KustomizeGenerator](https://sap.github.io/component-operator-runtime/docs/generators/kustomize/) logic is applied, which also supports plain YAML manifests without a `kustomization.yaml`.
+- If a `Chart.yaml` file exists in `spec.path`, the content is rendered as a **Helm chart** using the [HelmGenerator](https://sap.github.io/component-operator-runtime/docs/concepts/controller-runtime/generators/helm/).
+- Otherwise, the [KustomizeGenerator](https://sap.github.io/component-operator-runtime/docs/concepts/controller-runtime/generators/kustomize/) logic is applied, which also supports plain YAML manifests without a `kustomization.yaml`.
 
 ## Values and ValuesFrom
 
@@ -44,7 +44,7 @@ When `spec.path` contains a `Chart.yaml`, component-operator renders the source 
 - `pre-delete` and `post-delete` hooks are not allowed. Test and rollback hooks are ignored. `pre-install`, `post-install`, `pre-upgrade`, and `post-upgrade` hooks are handled in a slightly adapted way.
 - The `.helmignore` file is currently not evaluated.
 
-For more details, see the [HelmGenerator documentation](https://sap.github.io/component-operator-runtime/docs/generators/helm/).
+For more details, see the [HelmGenerator documentation](https://sap.github.io/component-operator-runtime/docs/concepts/controller-runtime/generators/helm/).
 
 ## Kustomize Manifests
 
@@ -87,7 +87,7 @@ In addition to all [sprig](http://masterminds.github.io/sprig) functions and the
 
 The `lookup` / `mustLookup` functions use the **target** client (the cluster where dependent objects are deployed), while `localLookup` / `mustLocalLookup` use the **local** client (the cluster where the controller runs). See [Impersonation and Remote Clusters](../impersonation) for implications when a `kubeConfig` is provided.
 
-The complete list of supported template functions can be found [here](https://sap.github.io/component-operator-runtime/docs/generators/kustomize/).
+The complete list of supported template functions can be found [here](https://sap.github.io/component-operator-runtime/docs/concepts/controller-runtime/generators/kustomize/).
 
 ### Tuning the Kustomize Source
 
@@ -112,7 +112,7 @@ includedKustomizations:
 
 Note that remote references in kustomizations are not supported.
 
-For full details, see the [KustomizeGenerator documentation](https://sap.github.io/component-operator-runtime/docs/generators/kustomize/).
+For full details, see the [KustomizeGenerator documentation](https://sap.github.io/component-operator-runtime/docs/concepts/controller-runtime/generators/kustomize/).
 
 ## PostBuild
 
