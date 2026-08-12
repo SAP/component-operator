@@ -338,6 +338,95 @@ metadata:
   font-size: 1rem;
   line-height: 1.6;
 }
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .hero-section {
+    min-height: auto !important;
+    padding: 3rem 1rem !important;
+  }
+
+  .hero-content img {
+    max-width: 140px !important;
+    margin-bottom: 1.5rem !important;
+  }
+
+  .hero-content h1 {
+    font-size: 2.2rem !important;
+    margin-bottom: 1rem !important;
+  }
+
+  .hero-content > p {
+    font-size: 1.15rem !important;
+    margin-bottom: 2rem !important;
+  }
+
+  .hero-tiles-container {
+    flex-direction: column !important;
+    gap: 1rem !important;
+    margin-bottom: 2.5rem !important;
+  }
+
+  .hero-tiles-container > i {
+    transform: rotate(90deg) !important;
+    font-size: 2rem !important;
+  }
+
+  .hero-tile {
+    width: 100% !important;
+    padding: 1.5rem 1.25rem !important;
+  }
+
+  .hero-tile h3 {
+    font-size: 1.2rem !important;
+  }
+
+  .scroll-arrow {
+    margin-top: 2rem !important;
+  }
+
+  .modal-content {
+    width: 95% !important;
+    margin: 12% auto !important;
+  }
+
+  .modal-header {
+    padding: 1.25rem !important;
+  }
+
+  .modal-header h2 {
+    font-size: 1.4rem !important;
+  }
+
+  .modal-body {
+    padding: 1.25rem !important;
+    max-height: 78vh !important;
+  }
+
+  .modal-body h3 {
+    font-size: 1.3rem !important;
+  }
+
+  .modal-body h4 {
+    font-size: 1.1rem !important;
+  }
+
+  .modal-body p,
+  .modal-body li {
+    font-size: 1rem !important;
+  }
+
+  .modal-body pre {
+    padding: 1rem !important;
+    font-size: 0.8rem !important;
+  }
+
+  .feature-tiles {
+    grid-template-columns: 1fr !important;
+    padding: 2.5rem 1rem !important;
+    gap: 1.5rem !important;
+  }
+}
 </style>
 
 <script>
