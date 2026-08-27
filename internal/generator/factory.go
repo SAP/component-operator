@@ -20,6 +20,7 @@ import (
 	"regexp"
 	"strings"
 	"sync"
+	"text/template"
 	"time"
 
 	apitypes "k8s.io/apimachinery/pkg/types"
@@ -42,15 +43,17 @@ type Item struct {
 const validity = 60 * time.Minute
 
 type Factory struct {
-	client client.Client
-	items  map[string]*Item
-	mutex  sync.Mutex
+	client                  client.Client
+	additionalTemplateFuncs template.FuncMap
+	items                   map[string]*Item
+	mutex                   sync.Mutex
 }
 
-func newFactory(clnt client.Client) *Factory {
+func newFactory(clnt client.Client, additionalTemplateFuncs template.FuncMap) *Factory {
 	factory := &Factory{
-		client: clnt,
-		items:  make(map[string]*Item),
+		client:                  clnt,
+		additionalTemplateFuncs: additionalTemplateFuncs,
+		items:                   make(map[string]*Item),
 	}
 
 	go func() {
@@ -138,7 +141,10 @@ func (f *Factory) GetGenerator(url string, path string, digest string, decryptio
 				return nil, err
 			}
 		} else if errors.Is(err, fs.ErrNotExist) {
-			generator, err = kustomize.NewKustomizeGenerator(root.FS(), path, nil, kustomize.KustomizeGeneratorOptions{Decryptor: decryptor})
+			generator, err = kustomize.NewKustomizeGenerator(root.FS(), path, nil, kustomize.KustomizeGeneratorOptions{
+				Decryptor:               decryptor,
+				AdditionalTemplateFuncs: f.additionalTemplateFuncs,
+			})
 			if err != nil {
 				return nil, err
 			}
