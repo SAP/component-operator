@@ -6,6 +6,8 @@ SPDX-License-Identifier: Apache-2.0
 package component
 
 import (
+	"text/template"
+
 	"github.com/pkg/errors"
 
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -28,6 +30,7 @@ type ReconcilerOptions struct {
 	DefaultServiceAccount   string
 	MaxConcurrentReconciles int
 	EventsAddress           string
+	AdditionalTemplateFuncs template.FuncMap
 }
 
 func SetupWithManager(mgr manager.Manager, options ReconcilerOptions) (*component.Reconciler[*operatorv1alpha1.Component], error) {
@@ -52,7 +55,9 @@ func SetupWithManager(mgr manager.Manager, options ReconcilerOptions) (*componen
 			&fluxsourcev1.HelmChart{},
 			newFluxSourceHandler(mgr.GetCache(), mgr.GetLogger()))
 
-	resourceGenerator, err := generator.NewGenerator(mgr.GetClient())
+	resourceGenerator, err := generator.NewGenerator(mgr.GetClient(), generator.GeneratorOptions{
+		AdditionalTemplateFuncs: options.AdditionalTemplateFuncs,
+	})
 	if err != nil {
 		return nil, errors.Wrap(err, "error initializing resource generator")
 	}

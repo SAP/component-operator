@@ -8,6 +8,7 @@ package generator
 import (
 	"context"
 	"encoding/json"
+	"text/template"
 
 	"github.com/sap/go-generics/maps"
 
@@ -21,15 +22,19 @@ import (
 	operatorv1alpha1 "github.com/sap/component-operator/api/v1alpha1"
 )
 
+type GeneratorOptions struct {
+	AdditionalTemplateFuncs template.FuncMap
+}
+
 type Generator struct {
 	factory *Factory
 }
 
 var _ manifests.Generator = &Generator{}
 
-func NewGenerator(clnt client.Client) (*Generator, error) {
+func NewGenerator(clnt client.Client, options GeneratorOptions) (*Generator, error) {
 	return &Generator{
-		factory: newFactory(clnt),
+		factory: newFactory(clnt, options.AdditionalTemplateFuncs),
 	}, nil
 }
 

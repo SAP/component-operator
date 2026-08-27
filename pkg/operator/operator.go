@@ -7,6 +7,7 @@ package operator
 
 import (
 	"flag"
+	"text/template"
 
 	"github.com/pkg/errors"
 
@@ -40,6 +41,7 @@ type Options struct {
 	DefaultServiceAccount   string
 	MaxConcurrentReconciles int
 	EventsAddress           string
+	AdditionalTemplateFuncs template.FuncMap
 	FlagPrefix              string
 }
 
@@ -122,6 +124,7 @@ func (o *Operator) Setup(mgr ctrl.Manager) error {
 		DefaultServiceAccount:   o.options.DefaultServiceAccount,
 		MaxConcurrentReconciles: o.options.MaxConcurrentReconciles,
 		EventsAddress:           o.options.EventsAddress,
+		AdditionalTemplateFuncs: o.options.AdditionalTemplateFuncs,
 	})
 	if err != nil {
 		return errors.Wrapf(err, "error registering component controller")
