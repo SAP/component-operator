@@ -14,11 +14,11 @@ import (
 // Interface provides access to all the informers in this group version.
 type Interface interface {
 	// Blueprints returns a BlueprintInformer.
-	Blueprints() BlueprintInformer
+	Blueprints() TypedBlueprintInformer
 	// BlueprintVersions returns a BlueprintVersionInformer.
-	BlueprintVersions() BlueprintVersionInformer
+	BlueprintVersions() TypedBlueprintVersionInformer
 	// Components returns a ComponentInformer.
-	Components() ComponentInformer
+	Components() TypedComponentInformer
 }
 
 type version struct {
@@ -32,17 +32,17 @@ func New(f internalinterfaces.SharedInformerFactory, namespace string, tweakList
 	return &version{factory: f, namespace: namespace, tweakListOptions: tweakListOptions}
 }
 
-// Blueprints returns a BlueprintInformer.
-func (v *version) Blueprints() BlueprintInformer {
+// Blueprints returns a TypedBlueprintInformer.
+func (v *version) Blueprints() TypedBlueprintInformer {
 	return &blueprintInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
 }
 
-// BlueprintVersions returns a BlueprintVersionInformer.
-func (v *version) BlueprintVersions() BlueprintVersionInformer {
+// BlueprintVersions returns a TypedBlueprintVersionInformer.
+func (v *version) BlueprintVersions() TypedBlueprintVersionInformer {
 	return &blueprintVersionInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
 }
 
-// Components returns a ComponentInformer.
-func (v *version) Components() ComponentInformer {
+// Components returns a TypedComponentInformer.
+func (v *version) Components() TypedComponentInformer {
 	return &componentInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
 }

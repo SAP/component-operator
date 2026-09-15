@@ -23,11 +23,39 @@ import (
 )
 
 // BlueprintInformer provides access to a shared informer and lister for
-// Blueprints.
+// Blueprints. Prefer using the type-safe variant (see [TypedBlueprintInformer]).
 type BlueprintInformer interface {
 	Informer() cache.SharedIndexInformer
 	Lister() corecssapcomv1alpha1.BlueprintLister
 }
+
+// TypedBlueprintInformer provides access to a shared informer and lister for
+// Blueprints, including the type-safe TypedInformer variant.
+// It is a superset of BlueprintInformer.
+type TypedBlueprintInformer interface {
+	Informer() cache.SharedIndexInformer
+	TypedInformer() BlueprintIndexInformer
+	Lister() corecssapcomv1alpha1.BlueprintLister
+}
+
+// BlueprintIndexInformer is a wrapper around the underlying [cache.SharedIndexInformer]
+// with type-safe variants of several methods.
+type BlueprintIndexInformer cache.TypedSharedIndexInformer[*apiscorecssapcomv1alpha1.Blueprint]
+
+// BlueprintHandlerFuncs is a specialization of [cache.TypedResourceEventHandlerFuncs] for Blueprint.
+type BlueprintHandlerFuncs = cache.TypedResourceEventHandlerFuncs[*apiscorecssapcomv1alpha1.Blueprint]
+
+// BlueprintDetailedHandlerFuncs is a specialization of [cache.TypedResourceEventHandlerDetailedFuncs] for Blueprint.
+type BlueprintDetailedHandlerFuncs = cache.TypedResourceEventHandlerDetailedFuncs[*apiscorecssapcomv1alpha1.Blueprint]
+
+// BlueprintFilteringHandler is a specialization of [cache.TypedFilteringResourceEventHandler] for Blueprint.
+type BlueprintFilteringHandler = cache.TypedFilteringResourceEventHandler[*apiscorecssapcomv1alpha1.Blueprint]
+
+// BlueprintIndexers is a specialization of [cache.TypedIndexers] for Blueprint.
+type BlueprintIndexers = cache.TypedIndexers[*apiscorecssapcomv1alpha1.Blueprint]
+
+// DeletedBlueprint is a specialization of [cache.DeletedObject] for Blueprint.
+type DeletedBlueprint = cache.DeletedObject[*apiscorecssapcomv1alpha1.Blueprint]
 
 type blueprintInformer struct {
 	factory          internalinterfaces.SharedInformerFactory
@@ -38,25 +66,49 @@ type blueprintInformer struct {
 // NewBlueprintInformer constructs a new informer for Blueprint type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
+// If you really need an independent one, prefer using the type-safe variant (see [NewTypedBlueprintInformer]).
 func NewBlueprintInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
 	return NewBlueprintInformerWithOptions(client, namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: indexers})
+}
+
+// NewTypedBlueprintInformer constructs a new informer for Blueprint type.
+// Always prefer using an informer factory to get a shared informer instead of getting an independent
+// one. This reduces memory footprint and number of connections to the server.
+func NewTypedBlueprintInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers BlueprintIndexers) BlueprintIndexInformer {
+	return NewTypedBlueprintInformerWithOptions(client, namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: cache.TypedIndexersToIndexers(indexers)})
 }
 
 // NewFilteredBlueprintInformer constructs a new informer for Blueprint type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
+// If you really need an independent one, prefer using the type-safe variant (see [NewTypedFilteredBlueprintInformer]).
 func NewFilteredBlueprintInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
-	return NewBlueprintInformerWithOptions(client, namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: indexers, TweakListOptions: tweakListOptions})
+	return NewTypedBlueprintInformerWithOptions(client, namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: indexers, TweakListOptions: tweakListOptions})
+}
+
+// NewTypedFilteredBlueprintInformer constructs a new informer for Blueprint type.
+// Always prefer using an informer factory to get a shared informer instead of getting an independent
+// one. This reduces memory footprint and number of connections to the server.
+func NewTypedFilteredBlueprintInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers BlueprintIndexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) BlueprintIndexInformer {
+	return NewTypedBlueprintInformerWithOptions(client, namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: cache.TypedIndexersToIndexers(indexers), TweakListOptions: tweakListOptions})
 }
 
 // NewBlueprintInformerWithOptions constructs a new informer for Blueprint type with additional options.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
+// If you really need an independent one, prefer using the type-safe variant (see [NewTypedBlueprintInformerWithOptions]).
 func NewBlueprintInformerWithOptions(client versioned.Interface, namespace string, options internalinterfaces.InformerOptions) cache.SharedIndexInformer {
+	return NewTypedBlueprintInformerWithOptions(client, namespace, options)
+}
+
+// NewTypedBlueprintInformerWithOptions constructs a new informer for Blueprint type with additional options.
+// Always prefer using an informer factory to get a shared informer instead of getting an independent
+// one. This reduces memory footprint and number of connections to the server.
+func NewTypedBlueprintInformerWithOptions(client versioned.Interface, namespace string, options internalinterfaces.InformerOptions) BlueprintIndexInformer {
 	gvr := schema.GroupVersionResource{Group: "core.cs.sap.com", Version: "v1alpha1", Resource: "blueprints"}
 	identifier := options.InformerName.WithResource(gvr)
 	tweakListOptions := options.TweakListOptions
-	return cache.NewSharedIndexInformerWithOptions(
+	return cache.NewTypedSharedIndexInformer[*apiscorecssapcomv1alpha1.Blueprint](cache.NewSharedIndexInformerWithOptions(
 		cache.ToListWatcherWithWatchListSemantics(&cache.ListWatch{
 			ListFunc: func(opts v1.ListOptions) (runtime.Object, error) {
 				if tweakListOptions != nil {
@@ -89,17 +141,57 @@ func NewBlueprintInformerWithOptions(client versioned.Interface, namespace strin
 			Indexers:     options.Indexers,
 			Identifier:   identifier,
 		},
-	)
+	))
 }
 
 func (f *blueprintInformer) defaultInformer(client versioned.Interface, resyncPeriod time.Duration) cache.SharedIndexInformer {
-	return NewBlueprintInformerWithOptions(client, f.namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, InformerName: f.factory.InformerName(), TweakListOptions: f.tweakListOptions})
+	return NewTypedBlueprintInformerWithOptions(client, f.namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, InformerName: f.factory.InformerName(), TweakListOptions: f.tweakListOptions})
 }
 
 func (f *blueprintInformer) Informer() cache.SharedIndexInformer {
-	return f.factory.InformerFor(&apiscorecssapcomv1alpha1.Blueprint{}, f.defaultInformer)
+	return f.TypedInformer()
+}
+
+func (f *blueprintInformer) TypedInformer() BlueprintIndexInformer {
+	return cache.NewTypedSharedIndexInformer[*apiscorecssapcomv1alpha1.Blueprint](f.factory.InformerFor(&apiscorecssapcomv1alpha1.Blueprint{}, f.defaultInformer))
 }
 
 func (f *blueprintInformer) Lister() corecssapcomv1alpha1.BlueprintLister {
 	return corecssapcomv1alpha1.NewBlueprintLister(f.Informer().GetIndexer())
+}
+
+// ToTypedBlueprintInformer converts an untyped informer into a TypedBlueprintInformer.
+//
+// WARNING: this conversion is only safe if the informer handles objects of type
+// *Blueprint. If that is not the case, calling type-safe methods of the returned
+// TypedBlueprintInformer leads to runtime panics. A safer alternative is to pass
+// around a TypedBlueprintInformer instances that was obtained from a
+// SharedInformerFactory.
+func ToTypedBlueprintInformer(informer BlueprintInformer) TypedBlueprintInformer {
+	if informer, ok := informer.(TypedBlueprintInformer); ok {
+		return informer
+	}
+	return &blueprintTypedInformerAdapter{informer}
+}
+
+type blueprintTypedInformerAdapter struct {
+	BlueprintInformer
+}
+
+func (a *blueprintTypedInformerAdapter) TypedInformer() BlueprintIndexInformer {
+	return cache.NewTypedSharedIndexInformer[*apiscorecssapcomv1alpha1.Blueprint](a.Informer())
+}
+
+// ToBlueprintIndexInformer converts an untyped informer into a BlueprintIndexInformer.
+//
+// WARNING: this conversion is only safe if the informer handles objects of type
+// *Blueprint. If that is not the case, calling type-safe methods of the returned
+// BlueprintIndexInformer leads to runtime panics. A safer alternative is to pass
+// around a BlueprintIndexInformer instances that was obtained from a
+// SharedInformerFactory.
+func ToBlueprintIndexInformer(informer cache.SharedIndexInformer) BlueprintIndexInformer {
+	if informer, ok := informer.(BlueprintIndexInformer); ok {
+		return informer
+	}
+	return cache.NewTypedSharedIndexInformer[*apiscorecssapcomv1alpha1.Blueprint](informer)
 }
