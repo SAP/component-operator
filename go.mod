@@ -6,19 +6,19 @@ require (
 	filippo.io/age v1.3.2
 	github.com/fluxcd/pkg/apis/event v0.28.0
 	github.com/fluxcd/pkg/runtime v0.111.0
-	github.com/fluxcd/source-controller/api v1.9.5
+	github.com/fluxcd/source-controller/api v1.9.6
 	github.com/getsops/sops/v3 v3.13.3
 	github.com/go-logr/logr v1.4.4
 	github.com/pkg/errors v0.9.1
-	github.com/sap/component-operator-runtime v0.3.170
-	github.com/sap/go-generics v0.2.75
+	github.com/sap/component-operator-runtime v0.3.171
+	github.com/sap/go-generics v0.2.76
 	k8s.io/api v0.37.1
 	k8s.io/apiextensions-apiserver v0.37.1
 	k8s.io/apimachinery v0.37.1
 	k8s.io/client-go v0.37.1
 	k8s.io/code-generator v0.37.1
-	sigs.k8s.io/controller-runtime v0.25.1
-	sigs.k8s.io/controller-runtime/tools/setup-envtest v0.25.1
+	sigs.k8s.io/controller-runtime v0.25.2
+	sigs.k8s.io/controller-runtime/tools/setup-envtest v0.25.2
 	sigs.k8s.io/controller-tools v0.22.0
 	sigs.k8s.io/yaml v1.6.0
 )
@@ -212,7 +212,7 @@ require (
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	k8s.io/gengo/v2 v2.0.0-20260408192533-25e2208e0dc3 // indirect
 	k8s.io/klog/v2 v2.140.0 // indirect
-	k8s.io/kube-aggregator v0.37.0 // indirect
+	k8s.io/kube-aggregator v0.37.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20260721132016-d427ff9ee9ad // indirect
 	k8s.io/utils v0.0.0-20260626114624-be93311217bd // indirect
 	sigs.k8s.io/cli-utils v0.37.2 // indirect
