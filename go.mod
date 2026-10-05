@@ -4,8 +4,8 @@ go 1.27.1
 
 require (
 	filippo.io/age v1.3.2
-	github.com/fluxcd/pkg/apis/event v0.30.0
-	github.com/fluxcd/pkg/runtime v0.115.0
+	github.com/fluxcd/pkg/apis/event v0.28.0
+	github.com/fluxcd/pkg/runtime v0.111.0
 	github.com/fluxcd/source-controller/api v1.9.6
 	github.com/getsops/sops/v3 v3.13.3
 	github.com/go-logr/logr v1.4.4
