@@ -24,6 +24,7 @@ import (
 	componentcache "github.com/sap/component-operator/internal/cache/component"
 )
 
+// TODO: can/should this be moved to preReconcile?
 func makeFuncPostRead() component.HookFunc[*operatorv1alpha1.Component] {
 	return func(ctx context.Context, clnt client.Client, component *operatorv1alpha1.Component) error {
 		if !component.DeletionTimestamp.IsZero() {
