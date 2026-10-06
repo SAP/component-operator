@@ -10,8 +10,8 @@ require (
 	github.com/getsops/sops/v3 v3.13.3
 	github.com/go-logr/logr v1.4.4
 	github.com/pkg/errors v0.9.1
-	github.com/sap/component-operator-runtime v0.3.172
-	github.com/sap/go-generics v0.2.76
+	github.com/sap/component-operator-runtime v0.3.174
+	github.com/sap/go-generics v0.2.77
 	k8s.io/api v0.37.1
 	k8s.io/apiextensions-apiserver v0.37.1
 	k8s.io/apimachinery v0.37.1
@@ -112,7 +112,7 @@ require (
 	github.com/go-openapi/swag/yamlutils v0.29.1 // indirect
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
 	github.com/gobuffalo/flect v1.0.3 // indirect
-	github.com/gobwas/glob v0.2.3 // indirect
+	github.com/gobwas/glob v1.0.0 // indirect
 	github.com/goccy/go-yaml v1.19.2 // indirect
 	github.com/golang-jwt/jwt/v5 v5.3.1 // indirect
 	github.com/google/gnostic-models v0.7.1 // indirect
@@ -221,4 +221,5 @@ require (
 	sigs.k8s.io/kustomize/kyaml v0.21.2 // indirect
 	sigs.k8s.io/randfill v1.0.0 // indirect
 	sigs.k8s.io/structured-merge-diff/v6 v6.4.2 // indirect
+	sigs.k8s.io/structured-merge-diff/v7 v7.0.0 // indirect
 )
