@@ -9,6 +9,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 )
 
 // TODO: consolidate all the util files into an internal reuse package
@@ -48,4 +49,16 @@ func calculateDigest(values ...any) string {
 		panic(err)
 	}
 	return sha256hex(raw)
+}
+
+func mapAndFilter[T any](data map[string]T, keyMap map[string]string) (map[string]T, error) {
+	mappedData := make(map[string]T)
+	for key, mappedKey := range keyMap {
+		value, ok := data[key]
+		if !ok {
+			return nil, fmt.Errorf("key %s not found in data", key)
+		}
+		mappedData[mappedKey] = value
+	}
+	return mappedData, nil
 }

@@ -296,11 +296,17 @@ type PostBuild struct {
 	// Variables to be substituted in the renderered manifests.
 	Substitute map[string]string `json:"substitute,omitempty"`
 	// Secrets containing variables to be used for substitution.
-	SubstituteFrom []component.SecretReference `json:"substituteFrom,omitempty" notFoundPolicy:"ignoreOnDeletion"`
+	SubstituteFrom []SubstituteFrom `json:"substituteFrom,omitempty" notFoundPolicy:"ignoreOnDeletion"`
 	// A list of kustomize patches.
 	Patches []manifests.KustomizePatch `json:"patches,omitempty"`
 	// A list of kustomize image replacements.
 	Images []manifests.KustomizeImage `json:"images,omitempty"`
+}
+
+// SubstituteFrom represents a source of secret items to be used for variable substitution.
+type SubstituteFrom struct {
+	component.SecretReference `json:",inline"`
+	Items                     []SecretItem `json:"items,omitempty"`
 }
 
 // Dependency models a dependency of the containing component to another Component (referenced by namespace and name).
@@ -313,6 +319,14 @@ type NamespacedName struct {
 	Namespace string `json:"namespace,omitempty"`
 	// +required
 	Name string `json:"name"`
+}
+
+// SecretItem represents a single item within a secret, including its key and the renamed key.
+type SecretItem struct {
+	// The key of the secret item.
+	Key string `json:"key"`
+	// The renamed key.
+	As string `json:"as"`
 }
 
 // Return a copy of the given NamespacedName, using the specified namespace if none is set.
