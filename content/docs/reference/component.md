@@ -156,7 +156,7 @@ Post-build variable substitution and transformations.
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `substitute` | map[string]string | No | Inline variable substitutions |
-| `substituteFrom` | [][SecretKeyReference](#secretkeyreference) | No | Secrets containing substitution variables |
+| `substituteFrom` | [][SecretReference](#secretreference) | No | Secrets containing substitution variables |
 | `patches` | []KustomizePatch | No | Kustomize patches to apply |
 | `images` | []KustomizeImage | No | Kustomize image replacements |
 
@@ -178,6 +178,14 @@ Represents a Kubernetes type for additional managed resources.
 | `group` | string | Yes | API group (use `*` for wildcard or `*.<suffix>` for pattern matching) |
 | `kind` | string | Yes | API kind (use `*` for wildcard) |
 
+## SecretReference
+
+Reference to a Secret.
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `name` | string | Yes | Secret name |
+
 ## SecretKeyReference
 
 Reference to a Secret and optional key.
@@ -185,7 +193,7 @@ Reference to a Secret and optional key.
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `name` | string | Yes | Secret name |
-| `key` | string | No | Secret key (default: tries `value`, `value.yaml`, `value.yml`) |
+| `key` | string | No | Secret key (might be defaulted, depending on context) |
 
 ## Status
 
