@@ -210,9 +210,25 @@ spec:
                   substituteFrom:
                     description: Secrets containing variables to be used for substitution.
                     items:
-                      description: SecretReference defines a loadable reference to
-                        a secret.
+                      description: SubstituteFrom represents a source of secret items
+                        to be used for variable substitution.
                       properties:
+                        items:
+                          items:
+                            description: SecretItem represents a single item within
+                              a secret, including its key and the renamed key.
+                            properties:
+                              as:
+                                description: The renamed key.
+                                type: string
+                              key:
+                                description: The key of the secret item.
+                                type: string
+                            required:
+                            - as
+                            - key
+                            type: object
+                          type: array
                         name:
                           minLength: 1
                           type: string
