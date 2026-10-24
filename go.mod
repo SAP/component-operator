@@ -5,8 +5,8 @@ go 1.27.3
 require (
 	filippo.io/age v1.3.2
 	github.com/fluxcd/pkg/apis/event v0.32.0
-	github.com/fluxcd/pkg/runtime v0.119.0
-	github.com/fluxcd/source-controller/api v1.9.6
+	github.com/fluxcd/pkg/runtime v0.122.0
+	github.com/fluxcd/source-controller/api v1.10.0
 	github.com/getsops/sops/v3 v3.13.3
 	github.com/go-logr/logr v1.4.4
 	github.com/pkg/errors v0.9.1
@@ -19,7 +19,7 @@ require (
 	k8s.io/code-generator v0.37.1
 	sigs.k8s.io/controller-runtime v0.25.2
 	sigs.k8s.io/controller-runtime/tools/setup-envtest v0.25.2
-	sigs.k8s.io/controller-tools v0.22.0
+	sigs.k8s.io/controller-tools v0.23.0
 	sigs.k8s.io/yaml v1.6.0
 )
 
@@ -87,7 +87,7 @@ require (
 	github.com/fatih/color v1.19.0 // indirect
 	github.com/felixge/httpsnoop v1.1.0 // indirect
 	github.com/fluxcd/pkg/apis/acl v0.12.0 // indirect
-	github.com/fluxcd/pkg/apis/meta v1.35.0 // indirect
+	github.com/fluxcd/pkg/apis/meta v1.38.0 // indirect
 	github.com/fsnotify/fsnotify v1.10.1 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.3 // indirect
 	github.com/getsops/gopgagent v0.0.0-20241224165529-7044f28e491e // indirect
@@ -184,7 +184,7 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v1.45.0 // indirect
 	go.opentelemetry.io/otel/trace v1.45.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	go.uber.org/zap v1.27.1 // indirect
+	go.uber.org/zap v1.28.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.4 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/crypto v0.58.0 // indirect
