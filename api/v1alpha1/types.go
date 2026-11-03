@@ -296,7 +296,7 @@ type PostBuild struct {
 	// Variables to be substituted in the renderered manifests.
 	Substitute map[string]string `json:"substitute,omitempty"`
 	// Secrets containing variables to be used for substitution.
-	SubstituteFrom []SubstituteFrom `json:"substituteFrom,omitempty" notFoundPolicy:"ignoreOnDeletion"`
+	SubstituteFrom []SubstituteFrom `json:"substituteFrom,omitempty"`
 	// A list of kustomize patches.
 	Patches []manifests.KustomizePatch `json:"patches,omitempty"`
 	// A list of kustomize image replacements.
@@ -305,7 +305,7 @@ type PostBuild struct {
 
 // SubstituteFrom represents a source of secret items to be used for variable substitution.
 type SubstituteFrom struct {
-	component.SecretReference `json:",inline"`
+	component.SecretReference `json:",inline" notFoundPolicy:"ignoreOnDeletion"`
 	Items                     []SecretItem `json:"items,omitempty"`
 }
 
