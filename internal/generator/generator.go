@@ -83,7 +83,14 @@ func (g *Generator) Generate(ctx context.Context, namespace string, name string,
 		if len(spec.PostBuild.Substitute) > 0 || len(spec.PostBuild.SubstituteFrom) > 0 {
 			substitutions := make(map[string]string)
 			for _, ref := range spec.PostBuild.SubstituteFrom {
-				shallowMerge(substitutions, maps.Collect(ref.Data(), func(x []byte) string { return string(x) }))
+				data := maps.Collect(ref.Data(), func(x []byte) string { return string(x) })
+				if len(ref.Items) > 0 {
+					data, err = mapAndFilter(data, maps.CollectSlice(ref.Items, func(item operatorv1alpha1.SecretItem) (string, string) { return item.Key, item.As }))
+					if err != nil {
+						return nil, err
+					}
+				}
+				shallowMerge(substitutions, data)
 			}
 			shallowMerge(substitutions, spec.PostBuild.Substitute)
 			transformer, err := manifests.NewSubstitutionObjectTransformer(substitutions, componentoperatorruntimetypes.SelectorFunc[client.Object](func(object client.Object) bool {
