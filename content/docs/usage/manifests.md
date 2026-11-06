@@ -119,7 +119,7 @@ For full details, see the [KustomizeGenerator documentation](https://sap.github.
 After the manifests are rendered, `spec.postBuild` allows for additional variable substitution and kustomize patches:
 
 - **`spec.postBuild.substitute`**: Inline `KEY: VALUE` pairs used for bash-style variable substitution (using [envsubst](https://github.com/drone/envsubst) syntax).
-- **`spec.postBuild.substituteFrom`**: Secrets whose keys are used as variable names and values as substitution values.
+- **`spec.postBuild.substituteFrom`**: Secrets whose keys are used as variable names and values as substitution values. Per secret, an optional `items` list allows to restrict the used keys, and to rename them (`key` is the key in the secret, `as` the resulting variable name).
 - **`spec.postBuild.patches`**: A list of kustomize strategic-merge or JSON patches applied after substitution.
 - **`spec.postBuild.images`**: A list of kustomize image replacements applied after substitution.
 
@@ -133,13 +133,18 @@ spec:
       REGION: eu-central-1
     substituteFrom:
       - name: env-secrets
+      - name: db-secrets
+        items:
+          - key: password
+            as: DB_PASSWORD
     patches:
       - patch: |
           - op: replace
             path: /spec/replicas
             value: 5
         target:
-          group: apps/v1
+          group: apps
+          version: v1
           kind: Deployment
           name: my-app
           namespace: my-ns

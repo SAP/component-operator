@@ -147,7 +147,7 @@ Settings for decrypting encrypted manifests using SOPS.
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `provider` | string | No | Decryption provider (default: `sops`) |
-| `secretRef` | [SecretKeyReference](#secretkeyreference) | Yes | Secret containing provider configuration |
+| `secretRef` | [SecretReference](#secretreference) | Yes | Secret containing provider configuration |
 
 ## PostBuild
 
@@ -156,9 +156,61 @@ Post-build variable substitution and transformations.
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `substitute` | map[string]string | No | Inline variable substitutions |
-| `substituteFrom` | [][SecretReference](#secretreference) | No | Secrets containing substitution variables |
-| `patches` | []KustomizePatch | No | Kustomize patches to apply |
-| `images` | []KustomizeImage | No | Kustomize image replacements |
+| `substituteFrom` | [][SubstituteFrom](#substitutefrom) | No | Secrets containing substitution variables |
+| `patches` | [][KustomizePatch](#kustomizepatch) | No | Kustomize patches to apply |
+| `images` | [][KustomizeImage](#kustomizeimage) | No | Kustomize image replacements |
+
+### SubstituteFrom
+
+Reference to a Secret providing variables for substitution.
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `name` | string | Yes | Secret name |
+| `items` | [][SecretItem](#secretitem) | No | Restrict and rename the secret keys to be used (if omitted, all keys are used as-is) |
+
+### SecretItem
+
+Selects a single key of a Secret and exposes it under a different variable name.
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `key` | string | Yes | Key of the secret item |
+| `as` | string | Yes | Variable name the key is renamed to |
+
+### KustomizePatch
+
+Kustomize patch specification; a subset of [kustomize's Patch type](https://pkg.go.dev/sigs.k8s.io/kustomize/api/types#Patch).
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `patch` | string | No | Strategic-merge or JSON patch, as inline YAML or JSON |
+| `target` | [KustomizeSelector](#kustomizeselector) | No | Selects the objects the patch is applied to |
+
+### KustomizeSelector
+
+Kustomize object selector; corresponds to [kustomize's Selector type](https://pkg.go.dev/sigs.k8s.io/kustomize/api/types#Selector).
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `group` | string | No | API group of the targeted objects |
+| `version` | string | No | API version of the targeted objects |
+| `kind` | string | No | Kind of the targeted objects |
+| `name` | string | No | Name of the targeted objects (regular expression) |
+| `namespace` | string | No | Namespace of the targeted objects (regular expression) |
+| `annotationSelector` | string | No | Annotation selector the targeted objects must match |
+| `labelSelector` | string | No | Label selector the targeted objects must match |
+
+### KustomizeImage
+
+Kustomize image modifier specification; a subset of [kustomize's Image type](https://pkg.go.dev/sigs.k8s.io/kustomize/api/types#Image).
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `name` | string | Yes | Image name to be replaced |
+| `newName` | string | No | New image name |
+| `newTag` | string | No | New image tag |
+| `digest` | string | No | New image digest |
 
 ## Dependency
 
