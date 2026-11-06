@@ -10,16 +10,16 @@ require (
 	github.com/getsops/sops/v3 v3.13.3
 	github.com/go-logr/logr v1.4.4
 	github.com/pkg/errors v0.9.1
-	github.com/sap/component-operator-runtime v0.3.176
+	github.com/sap/component-operator-runtime v0.3.177
 	github.com/sap/go-generics v0.2.79
-	k8s.io/api v0.37.1
-	k8s.io/apiextensions-apiserver v0.37.1
-	k8s.io/apimachinery v0.37.1
-	k8s.io/client-go v0.37.1
-	k8s.io/code-generator v0.37.1
+	k8s.io/api v0.37.2
+	k8s.io/apiextensions-apiserver v0.37.2
+	k8s.io/apimachinery v0.37.2
+	k8s.io/client-go v0.37.2
+	k8s.io/code-generator v0.37.2
 	sigs.k8s.io/controller-runtime v0.25.2
 	sigs.k8s.io/controller-runtime/tools/setup-envtest v0.25.2
-	sigs.k8s.io/controller-tools v0.22.0
+	sigs.k8s.io/controller-tools v0.23.0
 	sigs.k8s.io/yaml v1.6.0
 )
 
