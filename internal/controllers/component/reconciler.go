@@ -66,7 +66,9 @@ func SetupWithManager(mgr manager.Manager, options ReconcilerOptions) (*componen
 		if options.EventsAddress == "" {
 			return clnt, nil
 		}
-		eventRecorder, err := fluxevents.NewRecorder(mgr.GetLogger(), options.EventsAddress, options.Name)
+		eventRecorder, err := fluxevents.NewRecorder(mgr.GetLogger(), options.EventsAddress, options.Name,
+			fluxevents.WithScheme(clnt.Scheme()),
+			fluxevents.WithEventRecorder(clnt.EventRecorder()))
 		if err != nil {
 			return nil, errors.Wrap(err, "error initializing wrapping event recorder")
 		}
