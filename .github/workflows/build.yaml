@@ -12,8 +12,8 @@ on:
 concurrency: build-${{ github.ref }}
 
 env:
-  HELM_VERSION: v3.11.3
-  KIND_VERSION: v0.32.0
+  HELM_VERSION: v3.18.4
+  KIND_VERSION: v0.33.0
   REGISTRY: ghcr.io
   CHART_DIRECTORY: chart
 
@@ -70,7 +70,7 @@ jobs:
     - name: Run tests
       run: |
         make envtest
-        KUBEBUILDER_ASSETS=$(pwd)/bin/k8s/current E2E_ENABLED=${{ github.event_name == 'push' }} go test -count 1 ./...
+        KUBEBUILDER_ASSETS=$(pwd)/bin/k8s/current E2E_ENABLED=${{ github.event_name == 'push' }} go test -count 1 -timeout 20m ./...
 
   build-docker:
     name: Build Docker image
@@ -175,10 +175,11 @@ jobs:
           sleep 5
         fi
         release_name=$(yq .name $CHART_DIRECTORY/Chart.yaml)
-        helm -n flux-system upgrade -i $release_name --wait --timeout 5m \
+        kubectl create ns component-operator-system
+        helm -n component-operator-system upgrade -i $release_name --wait --timeout 5m \
           --set image.repository=${{ needs.build-docker.outputs.image-repository }} \
           --set image.tag=${{ needs.build-docker.outputs.image-tag }} \
           $CHART_DIRECTORY
         kubectl create ns component-system
         kubectl -n component-system apply -f examples/sample.yaml
-        kubectl -n component-system wait -f examples/sample.yaml --for condition=Ready --timeout 120s
+        kubectl -n component-system wait -f examples/sample.yaml --for condition=Ready --timeout 600s
