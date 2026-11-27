@@ -64,6 +64,7 @@ jobs:
       contents: read
       packages: write
       attestations: write
+      artifact-metadata: write
       id-token: write
 
     steps:
@@ -126,6 +127,7 @@ jobs:
       contents: read
       packages: write
       attestations: write
+      artifact-metadata: write
       id-token: write
 
     steps:
@@ -170,6 +172,7 @@ jobs:
       contents: read
       packages: write
       attestations: write
+      artifact-metadata: write
       id-token: write
 
     steps:
@@ -196,7 +199,7 @@ jobs:
         file=$chart_name-$chart_version.tgz
         repository=$REGISTRY/${{ github.repository }}/charts
         digest=$(helm --registry-config $RUNNER_TEMP/helm-config.json push $file oci://${repository,,} 2>&1 | awk '/Digest:/ {print $2}')
-        echo "repository=$repository" >> $GITHUB_OUTPUT
+        echo "repository=$repository/$chart_name" >> $GITHUB_OUTPUT
         echo "digest=$digest" >> $GITHUB_OUTPUT
 
     - name: Generate chart attestation
