@@ -63,6 +63,8 @@ jobs:
     permissions:
       contents: read
       packages: write
+      attestations: write
+      id-token: write
 
     steps:
     - name: Checkout repository
@@ -91,6 +93,7 @@ jobs:
         images: ${{ steps.prepare-repository-name.outputs.repository }}
 
     - name: Build and push Docker image
+      id: build-and-push
       uses: docker/build-push-action@v7
       with:
         platforms: linux/amd64,linux/arm64
@@ -107,6 +110,13 @@ jobs:
         tags: ${{ steps.extract-metadata.outputs.tags }}
         labels: ${{ steps.extract-metadata.outputs.labels }}
 
+    - name: Generate artifact attestation
+      uses: actions/attest-build-provenance@v4
+      with:
+        subject-name: ${{ steps.prepare-repository-name.outputs.repository }}
+        subject-digest: ${{ steps.build-and-push.outputs.digest }}
+        push-to-registry: true
+
   publish-crds:
     name: Publish CRD image
     runs-on: ubuntu-26.04
@@ -115,6 +125,8 @@ jobs:
     permissions:
       contents: read
       packages: write
+      attestations: write
+      id-token: write
 
     steps:
     - name: Checkout repository
@@ -137,10 +149,20 @@ jobs:
         regctl registry login $REGISTRY --user ${{ github.actor }} --pass-stdin <<< ${{ github.token }}
 
     - name: Build and push artifact
+      id: build-and-push
       run: |
         cd crds
         repository=$REGISTRY/${{ github.repository }}/crds
-        tar cvz * | regctl artifact put -m application/gzip ${repository,,}:${{ github.event.release.tag_name }}
+        digest=$(tar cvz * | regctl artifact put -m application/gzip ${repository,,}:${{ github.event.release.tag_name }} --format '{{.Manifest.GetDescriptor.Digest}}')
+        echo "repository=$repository" >> $GITHUB_OUTPUT
+        echo "digest=$digest" >> $GITHUB_OUTPUT
+
+    - name: Generate artifact attestation
+      uses: actions/attest-build-provenance@v4
+      with:
+        subject-name: ${{ steps.build-and-push.outputs.repository }}
+        subject-digest: ${{ steps.build-and-push.outputs.digest }}
+        push-to-registry: true
 
   publish-chart:
     name: Publish chart to github packages
@@ -150,6 +172,8 @@ jobs:
     permissions:
       contents: read
       packages: write
+      attestations: write
+      id-token: write
 
     steps:
     - name: Checkout repository
@@ -169,9 +193,19 @@ jobs:
         helm --registry-config $RUNNER_TEMP/helm-config.json registry login $REGISTRY -u ${{ github.actor }} --password-stdin <<< ${{ github.token }}
 
     - name: Upload package
+      id: push
       run: |
         chart_name=$(yq .name $CHART_DIRECTORY/Chart.yaml)
         chart_version=$(yq .version $CHART_DIRECTORY/Chart.yaml)
         file=$chart_name-$chart_version.tgz
         repository=$REGISTRY/${{ github.repository }}/charts
-        helm --registry-config $RUNNER_TEMP/helm-config.json push $file oci://${repository,,}
+        digest=$(helm --registry-config $RUNNER_TEMP/helm-config.json push $file oci://${repository,,} 2>&1 | awk '/Digest:/ {print $2}')
+        echo "repository=$repository" >> $GITHUB_OUTPUT
+        echo "digest=$digest" >> $GITHUB_OUTPUT
+
+    - name: Generate chart attestation
+      uses: actions/attest-build-provenance@v4
+      with:
+        subject-name: ${{ steps.push.outputs.repository }}
+        subject-digest: ${{ steps.push.outputs.digest }}
+        push-to-registry: true
