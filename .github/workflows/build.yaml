@@ -175,8 +175,7 @@ jobs:
           sleep 5
         fi
         release_name=$(yq .name $CHART_DIRECTORY/Chart.yaml)
-        kubectl create ns component-operator-system
-        helm -n component-operator-system upgrade -i $release_name --wait --timeout 5m \
+        helm -n flux-system upgrade -i $release_name --wait --timeout 5m \
           --set image.repository=${{ needs.build-docker.outputs.image-repository }} \
           --set image.tag=${{ needs.build-docker.outputs.image-tag }} \
           $CHART_DIRECTORY
