@@ -1,6 +1,6 @@
 module github.com/sap/component-operator
 
-go 1.27.3
+go 1.27.4
 
 require (
 	filippo.io/age v1.3.2
@@ -10,16 +10,16 @@ require (
 	github.com/getsops/sops/v3 v3.13.3
 	github.com/go-logr/logr v1.4.4
 	github.com/pkg/errors v0.9.1
-	github.com/sap/component-operator-runtime v0.3.176
-	github.com/sap/go-generics v0.2.79
-	k8s.io/api v0.37.1
-	k8s.io/apiextensions-apiserver v0.37.1
-	k8s.io/apimachinery v0.37.1
-	k8s.io/client-go v0.37.1
-	k8s.io/code-generator v0.37.1
-	sigs.k8s.io/controller-runtime v0.25.2
-	sigs.k8s.io/controller-runtime/tools/setup-envtest v0.25.2
-	sigs.k8s.io/controller-tools v0.22.0
+	github.com/sap/component-operator-runtime v0.3.178
+	github.com/sap/go-generics v0.2.81
+	k8s.io/api v0.37.3
+	k8s.io/apiextensions-apiserver v0.37.3
+	k8s.io/apimachinery v0.37.3
+	k8s.io/client-go v0.37.3
+	k8s.io/code-generator v0.37.3
+	sigs.k8s.io/controller-runtime v0.25.3
+	sigs.k8s.io/controller-runtime/tools/setup-envtest v0.25.3
+	sigs.k8s.io/controller-tools v0.23.0
 	sigs.k8s.io/yaml v1.6.0
 )
 
@@ -112,7 +112,7 @@ require (
 	github.com/go-openapi/swag/yamlutils v0.29.1 // indirect
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
 	github.com/gobuffalo/flect v1.0.3 // indirect
-	github.com/gobwas/glob v1.0.0 // indirect
+	github.com/gobwas/glob v1.1.0 // indirect
 	github.com/goccy/go-yaml v1.19.2 // indirect
 	github.com/golang-jwt/jwt/v5 v5.3.1 // indirect
 	github.com/google/gnostic-models v0.7.1 // indirect
@@ -166,7 +166,7 @@ require (
 	github.com/spf13/afero v1.15.0 // indirect
 	github.com/spf13/cast v1.10.0 // indirect
 	github.com/spf13/cobra v1.10.2 // indirect
-	github.com/spf13/pflag v1.0.10 // indirect
+	github.com/spf13/pflag v1.1.0 // indirect
 	github.com/spiffe/go-spiffe/v2 v2.8.1 // indirect
 	github.com/src-d/gcfg v1.4.0 // indirect
 	github.com/tjfoc/gmsm v1.4.1 // indirect
