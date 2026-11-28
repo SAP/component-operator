@@ -193,7 +193,7 @@ jobs:
         helm package --version $chart_version $CHART_DIRECTORY
         file=$chart_name-$chart_version.tgz
         repository=$REGISTRY/${{ github.repository }}/charts
-        digest=$(helm --registry-config $RUNNER_TEMP/helm-config.json push $file oci://${repository,,} 2>&1 | awk '/Digest:/ {print $2}')
+        digest=$(helm push $file oci://${repository,,} 2>&1 | awk '/Digest:/ {print $2}')
         echo "repository=$repository/$chart_name" >> $GITHUB_OUTPUT
         echo "digest=$digest" >> $GITHUB_OUTPUT
 
